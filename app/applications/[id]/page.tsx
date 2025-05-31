@@ -20,11 +20,11 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { AppStatus, UserType, ActionType, LoanType } from "@/types";
+import { AppStatus, UserType, ActionType, LoanType, Application, ActivityLog } from "@/types";
 import { toast } from "sonner";
 import { formatDistance } from "date-fns";
 
-export default function ApplicationDetailPage() {
+export default function ApplicationDetailPage(): JSX.Element {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
@@ -36,38 +36,52 @@ export default function ApplicationDetailPage() {
     rejectApplication 
   } = useDataStore();
   
-  const [application, setApplication] = useState(null);
-  const [activities, setActivities] = useState([]);
-  const [showApproveDialog, setShowApproveDialog] = useState(false);
-  const [showRejectDialog, setShowRejectDialog] = useState(false);
-  const [comment, setComment] = useState("");
+  const [application, setApplication] = useState<Application | null>(null);
+  const [activities, setActivities] = useState<ActivityLog[]>([]);
+  const [showApproveDialog, setShowApproveDialog] = useState<boolean>(false);
+  const [showRejectDialog, setShowRejectDialog] = useState<boolean>(false);
+  const [comment, setComment] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>("");
   
-  const id = params?.id;
+  const id = params?.id as string | undefined;
   
   useEffect(() => {
-    if (!id) return;
-    
-    const app = getApplicationById(id as string);
-    setApplication(app);
-    
-    const logs = getActivitiesByApplicationId(id as string);
-    setActivities(logs);
+    const loadApplication = async () => {
+      if (!id) {
+        setError("No application ID provided");
+        setIsLoading(false);
+        return;
+      }
+      
+      try {
+        const app = await getApplicationById(id);
+        if (!app) {
+          setError("Application not found");
+          setIsLoading(false);
+          return;
+        }
+        
+        setApplication(app);
+        
+        const logs = await getActivitiesByApplicationId(id);
+        setActivities(logs || []);
+        setError("");
+      } catch (err) {
+        console.error("Error loading application:", err);
+        setError("Failed to load application");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadApplication();
   }, [id, getApplicationById, getActivitiesByApplicationId]);
   
-  if (!application) {
-    return (
-      <MainLayout>
-        <div className="flex items-center justify-center h-96">
-          <div className="text-center">
-            <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading application...</p>
-          </div>
-        </div>
-      </MainLayout>
-    );
-  }
-  
-  const getStatusColor = (status: AppStatus) => {
+  // Safe formatter functions with null checks
+  const safeGetStatusColor = (status: AppStatus | undefined): string => {
+    if (!status) return "bg-gray-100 text-gray-800 border-gray-200";
+    
     switch (status) {
       case AppStatus.DRAFT:
         return "bg-yellow-100 text-yellow-800 border-yellow-200";
@@ -82,87 +96,29 @@ export default function ApplicationDetailPage() {
     }
   };
 
-  const formatStatus = (status: AppStatus) => {
-    return status.replace("_", " ");
+  const safeFormatStatus = (status: AppStatus | undefined): string => {
+    if (!status) return "Unknown";
+    return String(status).replace(/_/g, " ");
   };
   
-  const formatLoanType = (type: LoanType) => {
-    return type.replace("_", " ");
+  const safeFormatLoanType = (type: LoanType | undefined): string => {
+    if (!type) return "Unknown";
+    return String(type).replace(/_/g, " ");
   };
   
-  const handleKycToggle = (checked: boolean) => {
-    if (!user || !application.customer?.custId) return;
-    
-    const success = updateCustomerKyc(
-      application.customer.custId,
-      checked,
-      user.id
-    );
-    
-    if (success) {
-      toast.success(`KYC verification ${checked ? "approved" : "revoked"}`);
-      
-      // Refresh application data
-      const app = getApplicationById(id as string);
-      setApplication(app);
-      
-      // Refresh activity logs
-      const logs = getActivitiesByApplicationId(id as string);
-      setActivities(logs);
-    } else {
-      toast.error("Failed to update KYC status");
-    }
+  const safeFormatEmploymentStatus = (status: string | undefined): string => {
+    if (!status) return "Unknown";
+    return String(status).replace(/_/g, " ");
   };
   
-  const handleApprove = () => {
-    if (!user || !id || !comment.trim()) {
-      toast.error("Please enter a comment");
-      return;
-    }
-    
-    const result = approveApplication(id as string, user.id, comment);
-    
-    if (result) {
-      toast.success("Application approved successfully");
-      setShowApproveDialog(false);
-      
-      // Refresh application data
-      const app = getApplicationById(id as string);
-      setApplication(app);
-      
-      // Refresh activity logs
-      const logs = getActivitiesByApplicationId(id as string);
-      setActivities(logs);
-    } else {
-      toast.error("Failed to approve application. KYC must be verified first.");
-    }
+  const safeFormatLeadSource = (source: string | undefined): string => {
+    if (!source) return "Unknown";
+    return String(source).replace(/_/g, " ");
   };
   
-  const handleReject = () => {
-    if (!user || !id || !comment.trim()) {
-      toast.error("Please enter a comment");
-      return;
-    }
+  const safeFormatActivityType = (type: ActionType | undefined): string => {
+    if (!type) return "Unknown";
     
-    const result = rejectApplication(id as string, user.id, comment);
-    
-    if (result) {
-      toast.success("Application rejected successfully");
-      setShowRejectDialog(false);
-      
-      // Refresh application data
-      const app = getApplicationById(id as string);
-      setApplication(app);
-      
-      // Refresh activity logs
-      const logs = getActivitiesByApplicationId(id as string);
-      setActivities(logs);
-    } else {
-      toast.error("Failed to reject application");
-    }
-  };
-  
-  const formatActivityType = (type: ActionType) => {
     switch (type) {
       case ActionType.CREATED:
         return "Created";
@@ -177,11 +133,13 @@ export default function ApplicationDetailPage() {
       case ActionType.KYC_VERIFIED:
         return "KYC Verified";
       default:
-        return type;
+        return String(type).replace(/_/g, " ");
     }
   };
   
-  const getActivityIcon = (type: ActionType) => {
+  const getActivityIcon = (type: ActionType | undefined): string => {
+    if (!type) return "bg-gray-100 text-gray-800";
+    
     switch (type) {
       case ActionType.CREATED:
         return "bg-blue-100 text-blue-800";
@@ -199,6 +157,164 @@ export default function ApplicationDetailPage() {
         return "bg-gray-100 text-gray-800";
     }
   };
+  
+  const handleKycToggle = async (checked: boolean): Promise<void> => {
+    if (!user || !application?.customer?.custId) {
+      toast.error("Unable to update KYC status");
+      return;
+    }
+    
+    try {
+      const success = await updateCustomerKyc(
+        application.customer.custId,
+        checked,
+        user.id
+      );
+      
+      if (success) {
+        toast.success(`KYC verification ${checked ? "approved" : "revoked"}`);
+        
+        // Refresh application data
+        const app = await getApplicationById(id!);
+        setApplication(app);
+        
+        // Refresh activity logs
+        const logs = await getActivitiesByApplicationId(id!);
+        setActivities(logs || []);
+      } else {
+        toast.error("Failed to update KYC status");
+      }
+    } catch (error) {
+      console.error("KYC update error:", error);
+      toast.error("Failed to update KYC status");
+    }
+  };
+  
+  const handleApprove = async (): Promise<void> => {
+    if (!user || !id || !comment.trim()) {
+      toast.error("Please enter a comment");
+      return;
+    }
+    
+    try {
+      const result = await approveApplication(id, user.id, comment);
+      
+      if (result) {
+        toast.success("Application approved successfully");
+        setShowApproveDialog(false);
+        setComment("");
+        
+        // Refresh application data
+        const app = await getApplicationById(id);
+        setApplication(app);
+        
+        // Refresh activity logs
+        const logs = await getActivitiesByApplicationId(id);
+        setActivities(logs || []);
+      } else {
+        toast.error("Failed to approve application. KYC must be verified first.");
+      }
+    } catch (error) {
+      console.error("Approval error:", error);
+      toast.error("Failed to approve application");
+    }
+  };
+  
+  const handleReject = async (): Promise<void> => {
+    if (!user || !id || !comment.trim()) {
+      toast.error("Please enter a comment");
+      return;
+    }
+    
+    try {
+      const result = await rejectApplication(id, user.id, comment);
+      
+      if (result) {
+        toast.success("Application rejected successfully");
+        setShowRejectDialog(false);
+        setComment("");
+        
+        // Refresh application data
+        const app = await getApplicationById(id);
+        setApplication(app);
+        
+        // Refresh activity logs
+        const logs = await getActivitiesByApplicationId(id);
+        setActivities(logs || []);
+      } else {
+        toast.error("Failed to reject application");
+      }
+    } catch (error) {
+      console.error("Rejection error:", error);
+      toast.error("Failed to reject application");
+    }
+  };
+
+  const formatCurrency = (amount: number | undefined): string => {
+    if (amount === undefined || amount === null) return "N/A";
+    return `₹${Number(amount).toLocaleString()}`;
+  };
+
+  const formatDate = (date: Date | string | undefined): string => {
+    if (!date) return "N/A";
+    try {
+      return new Date(date).toLocaleDateString();
+    } catch {
+      return "N/A";
+    }
+  };
+
+  const formatTimeAgo = (date: Date | string | undefined): string => {
+    if (!date) return "Unknown time";
+    try {
+      return formatDistance(new Date(date), new Date(), { addSuffix: true });
+    } catch {
+      return "Unknown time";
+    }
+  };
+
+  const closeApproveDialog = (): void => {
+    setShowApproveDialog(false);
+    setComment("");
+  };
+
+  const closeRejectDialog = (): void => {
+    setShowRejectDialog(false);
+    setComment("");
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading application...</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  // Error state
+  if (error || !application) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <div className="text-red-500 text-6xl mb-4">⚠️</div>
+            <h2 className="text-2xl font-bold mb-2">Application Not Found</h2>
+            <p className="text-muted-foreground mb-4">{error || "The requested application could not be found."}</p>
+            <Button onClick={() => router.back()}>Go Back</Button>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  const isChecker = user?.userType === UserType.SALES_CHECKER;
+  const canApproveReject = isChecker && application.status === AppStatus.FORM_SUBMITTED;
 
   return (
     <MainLayout>
@@ -206,13 +322,15 @@ export default function ApplicationDetailPage() {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-3">
             Application Details
-            <Badge variant="outline" className={getStatusColor(application.status)}>
-              {formatStatus(application.status)}
+            <Badge variant="outline" className={safeGetStatusColor(application.status)}>
+              {safeFormatStatus(application.status)}
             </Badge>
           </h1>
           <p className="text-muted-foreground">
-            Lead ID: {application.leadId} | 
-            {application.appId ? ` Application ID: ${application.appId}` : application.tempAppId ? ` Temp ID: ${application.tempAppId}` : " No ID assigned yet"}
+            Lead ID: {application.leadId || "N/A"} | 
+            {application.appId ? ` Application ID: ${application.appId}` : 
+             application.tempAppId ? ` Temp ID: ${application.tempAppId}` : 
+             " No ID assigned yet"}
           </p>
         </div>
         
@@ -262,7 +380,7 @@ export default function ApplicationDetailPage() {
                             {application.customer?.kycVerified ? "Verified" : "Pending"}
                           </Badge>
                           
-                          {user?.userType === UserType.SALES_CHECKER && (
+                          {isChecker && (
                             <div className="flex items-center space-x-2">
                               <Switch 
                                 checked={application.customer?.kycVerified || false}
@@ -289,7 +407,7 @@ export default function ApplicationDetailPage() {
                   <CardHeader>
                     <CardTitle>Loan Information</CardTitle>
                     <CardDescription>
-                      Loan Type: {formatLoanType(application.loanType)}
+                      Loan Type: {safeFormatLoanType(application.loanType)}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -297,35 +415,38 @@ export default function ApplicationDetailPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <Label className="text-muted-foreground">Loan Amount</Label>
-                          <p className="font-medium">₹{application.formData.loanAmount.toLocaleString()}</p>
+                          <p className="font-medium">{formatCurrency(application.formData.loanAmount)}</p>
                         </div>
                         <div>
                           <Label className="text-muted-foreground">Monthly Income</Label>
-                          <p className="font-medium">₹{application.formData.monthlyIncome.toLocaleString()}</p>
+                          <p className="font-medium">{formatCurrency(application.formData.monthlyIncome)}</p>
                         </div>
                         <div>
                           <Label className="text-muted-foreground">Employment Status</Label>
-                          <p className="font-medium">{application.formData.employmentStatus.replace("_", " ")}</p>
+                          <p className="font-medium">{safeFormatEmploymentStatus(application.formData.employmentStatus)}</p>
                         </div>
                         <div>
                           <Label className="text-muted-foreground">Existing Loans</Label>
-                          <p className="font-medium">{application.formData.existingLoans ? "Yes" : "No"}</p>
+                          <p className="font-medium">
+                            {application.formData.existingLoans !== undefined ? 
+                              (application.formData.existingLoans ? "Yes" : "No") : 
+                              "N/A"}
+                          </p>
                         </div>
                         <div>
                           <Label className="text-muted-foreground">Lead Source</Label>
-                          <p className="font-medium">{application.formData.leadSource.replace("_", " ")}</p>
+                          <p className="font-medium">{safeFormatLeadSource(application.formData.leadSource)}</p>
                         </div>
                         <div className="col-span-2">
                           <Label className="text-muted-foreground">Loan Purpose</Label>
-                          <p className="font-medium">{application.formData.loanPurpose}</p>
+                          <p className="font-medium">{application.formData.loanPurpose || "N/A"}</p>
                         </div>
                       </div>
                     ) : (
                       <p className="text-muted-foreground">No form data available</p>
                     )}
                   </CardContent>
-                  {user?.userType === UserType.SALES_CHECKER && 
-                   application.status === AppStatus.FORM_SUBMITTED && (
+                  {canApproveReject && (
                     <CardFooter className="flex justify-end gap-3">
                       <Button 
                         variant="destructive" 
@@ -354,19 +475,19 @@ export default function ApplicationDetailPage() {
                     <p className="text-muted-foreground py-4 text-center">No activity recorded</p>
                   ) : (
                     <div className="space-y-4">
-                      {activities.map((activity) => (
+                      {activities.map((activity: ActivityLog) => (
                         <div key={activity.id} className="flex items-start gap-3 pb-4 border-b">
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getActivityIcon(activity.actionType)}`}>
-                            {activity.actionType.charAt(0)}
+                            {activity.actionType ? String(activity.actionType).charAt(0) : "?"}
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <p className="font-medium">{formatActivityType(activity.actionType)}</p>
+                              <p className="font-medium">{safeFormatActivityType(activity.actionType)}</p>
                               <span className="text-xs text-muted-foreground">
-                                {formatDistance(new Date(activity.performedAt), new Date(), { addSuffix: true })}
+                                {formatTimeAgo(activity.performedAt)}
                               </span>
                             </div>
-                            <p className="text-sm text-muted-foreground">{activity.comment}</p>
+                            <p className="text-sm text-muted-foreground">{activity.comment || "No comment"}</p>
                           </div>
                         </div>
                       ))}
@@ -387,11 +508,11 @@ export default function ApplicationDetailPage() {
               <div className="space-y-4">
                 <div>
                   <Label className="text-muted-foreground">Application Status</Label>
-                  <p className="font-medium">{formatStatus(application.status)}</p>
+                  <p className="font-medium">{safeFormatStatus(application.status)}</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Loan Type</Label>
-                  <p className="font-medium">{formatLoanType(application.loanType)}</p>
+                  <p className="font-medium">{safeFormatLoanType(application.loanType)}</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Customer</Label>
@@ -399,11 +520,11 @@ export default function ApplicationDetailPage() {
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Created Date</Label>
-                  <p className="font-medium">{new Date(application.createdAt).toLocaleDateString()}</p>
+                  <p className="font-medium">{formatDate(application.createdAt)}</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Last Updated</Label>
-                  <p className="font-medium">{new Date(application.updatedAt).toLocaleDateString()}</p>
+                  <p className="font-medium">{formatDate(application.updatedAt)}</p>
                 </div>
               </div>
             </CardContent>
@@ -419,17 +540,17 @@ export default function ApplicationDetailPage() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="comment">Comment</Label>
+              <Label htmlFor="approve-comment">Comment</Label>
               <Textarea
-                id="comment"
+                id="approve-comment"
                 placeholder="Enter reason for approval"
                 value={comment}
-                onChange={(e) => setComment(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setComment(e.target.value)}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowApproveDialog(false)}>
+            <Button variant="outline" onClick={closeApproveDialog}>
               Cancel
             </Button>
             <Button onClick={handleApprove}>
@@ -447,17 +568,17 @@ export default function ApplicationDetailPage() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="comment">Reason for Rejection</Label>
+              <Label htmlFor="reject-comment">Reason for Rejection</Label>
               <Textarea
-                id="comment"
+                id="reject-comment"
                 placeholder="Enter reason for rejection"
                 value={comment}
-                onChange={(e) => setComment(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setComment(e.target.value)}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowRejectDialog(false)}>
+            <Button variant="outline" onClick={closeRejectDialog}>
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleReject}>

@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useDataStore } from "@/lib/data";
-import { 
-  Dialog, 
+import {
+  Dialog,
   DialogContent,
-  DialogDescription, 
-  DialogHeader, 
+  DialogDescription,
+  DialogHeader,
   DialogTitle,
-  DialogFooter
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -24,51 +24,49 @@ import {
 } from "@/components/ui/select";
 import {
   Tabs,
-  TabsContent,
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { CustomerType, LoanType } from "@/types";
+import { Customer, LoanType } from "@/types";
 import { KYCForm } from "@/components/application/kyc-form";
 import { toast } from "sonner";
 
 interface LoanFormData {
-    fullName: string;
-    loanAmount: number;
-    loanPurpose: string;
-    employmentStatus: string;
-    monthlyIncome: number;
-    existingLoans: boolean;
-    leadSource: string;
+  fullName: string;
+  loanAmount: number;
+  loanPurpose: string;
+  employmentStatus: string;
+  monthlyIncome: number;
+  existingLoans: boolean;
+  leadSource: string;
 }
 
-export default function ApplicationForm({ 
-  open, 
+type CustomerType = "ETC" | "NTC";
+
+export default function ApplicationForm({
+  open,
   onClose,
-  onSuccess
-}: { 
-  open: boolean; 
+  onSuccess,
+}: {
+  open: boolean;
   onClose: () => void;
   onSuccess: () => void;
 }) {
   const { user } = useAuth();
-  const { 
-    createApplication, 
+  const {
+    createApplication,
     getCustomerById,
     saveApplicationForm,
-    submitApplicationForm 
+    submitApplicationForm,
   } = useDataStore();
 
-  // Initial form state
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState<number>(1);
   const [loanType, setLoanType] = useState<LoanType | "">("");
   const [customerType, setCustomerType] = useState<CustomerType | "">("");
-  const [custId, setCustId] = useState("");
-  const [existingCustomer, setExistingCustomer] = useState(null);
-  const [showKYCForm, setShowKYCForm] = useState(false);
-
-  // Form data state
-  const [applicationId, setApplicationId] = useState("");
+  const [custId, setCustId] = useState<string>("");
+  const [existingCustomer, setExistingCustomer] = useState<Customer | null>(null);
+  const [showKYCForm, setShowKYCForm] = useState<boolean>(false);
+  const [applicationId, setApplicationId] = useState<string>("");
   const [formData, setFormData] = useState<LoanFormData>({
     fullName: "",
     loanAmount: 0,
@@ -76,29 +74,40 @@ export default function ApplicationForm({
     employmentStatus: "",
     monthlyIncome: 0,
     existingLoans: false,
-    leadSource: ""
+    leadSource: "",
   });
+  const [errors, setErrors] = useState<Partial<Record<keyof LoanFormData, string>>>({});
 
-  // Form validation
-  const [errors, setErrors] = useState({});
-
-  const handleSearchCustomer = () => {
+  const handleSearchCustomer = async () => {
     if (!custId.trim()) {
       toast.error("Please enter a Customer ID");
       return;
     }
+    try {
+      const customer = await getCustomerById(custId);
+      if (customer) {
+        setExistingCustomer(customer);
+        setFormData((prev) => ({
+          ...prev,
+          fullName: customer.name,
+        }));
+        setStep(3);
 
-    const customer = getCustomerById(custId);
-
-    if (customer) {
-      setExistingCustomer(customer);
-      setFormData(prev => ({
-        ...prev,
-        fullName: customer.name,
-      }));
-      setStep(3);
-    } else {
-      toast.error("Customer not found. Please check the Customer ID.");
+        if (user) {
+          const newApp = await createApplication({
+            customerId: customer.id,
+            pincode: customer.pincode,
+            loanType: loanType as LoanType,
+            userId: user.id,
+          });
+          setApplicationId(newApp.id);
+        }
+      } else {
+        toast.error("Customer not found. Please check the Customer ID.");
+      }
+    } catch (error) {
+      console.error("Error fetching customer:", error);
+      toast.error("An error occurred while fetching customer data.");
     }
   };
 
@@ -112,75 +121,81 @@ export default function ApplicationForm({
         toast.error("Please select if the customer is ETC or NTC");
         return;
       }
-
       setStep(2);
-
-      if (customerType === CustomerType.NTC) {
+      if (customerType === "NTC") {
         setShowKYCForm(true);
       }
     }
   };
 
-  const handleCustomerCreated = (customer) => {
+  const handleCustomerCreated = async (customer: Customer) => {
     setExistingCustomer(customer);
     setShowKYCForm(false);
     setStep(3);
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       fullName: customer.name,
     }));
 
-    // Create new application
     if (user) {
-      const newApp = createApplication({
-        customerId: customer.id,
-        pincode: customer.pincode,
-        loanType: loanType as LoanType,
-        userId: user.id
-      });
-
-      setApplicationId(newApp.id);
-      toast.success("KYC details saved. Please fill the loan application form.");
+      try {
+        const newApp = await createApplication({
+          customerId: customer.id,
+          pincode: customer.pincode,
+          loanType: loanType as LoanType,
+          userId: user.id,
+        });
+        setApplicationId(newApp.id);
+        toast.success("KYC details saved. Please fill the loan application form.");
+      } catch (error) {
+        console.error("Error creating application:", error);
+        toast.error("An error occurred while creating the application.");
+      }
     }
   };
 
-  const handleFormChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value
-    }));
-  };
+ const handleFormChange = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+) => {
+  const target = e.target;
+  const { name, value, type } = target;
 
-  const validateForm = () => {
-    const newErrors = {};
+  setFormData((prev) => ({
+    ...prev,
+    [name]:
+      type === "checkbox" && target instanceof HTMLInputElement
+        ? target.checked
+        : type === "number"
+        ? Number(value)
+        : value,
+  }));
+};
+
+
+  const validateForm = (): boolean => {
+    const newErrors: Partial<Record<keyof LoanFormData, string>> = {};
     let isValid = true;
 
     if (!formData.fullName.trim()) {
       newErrors.fullName = "Full name is required";
       isValid = false;
     }
-
     if (formData.loanAmount <= 0) {
       newErrors.loanAmount = "Loan amount must be a positive number";
       isValid = false;
     }
-
     if (!formData.loanPurpose.trim()) {
       newErrors.loanPurpose = "Loan purpose is required";
       isValid = false;
     }
-
     if (!formData.employmentStatus.trim()) {
       newErrors.employmentStatus = "Employment status is required";
       isValid = false;
     }
-
     if (formData.monthlyIncome <= 0) {
       newErrors.monthlyIncome = "Monthly income must be a positive number";
       isValid = false;
     }
-
     if (!formData.leadSource.trim()) {
       newErrors.leadSource = "Lead source is required";
       isValid = false;
@@ -190,7 +205,7 @@ export default function ApplicationForm({
     return isValid;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validateForm()) return;
 
     if (user && applicationId) {
@@ -198,21 +213,25 @@ export default function ApplicationForm({
         ...formData,
         loanAmount: Number(formData.loanAmount),
         monthlyIncome: Number(formData.monthlyIncome),
-        existingLoans: formData.existingLoans === true
+        existingLoans: formData.existingLoans === true,
       };
 
-      const result = saveApplicationForm(applicationId, processedData, user.id);
-
-      if (result) {
-        toast.success("Application saved successfully");
-        onSuccess();
-      } else {
-        toast.error("Failed to save application");
+      try {
+        const result = await saveApplicationForm(applicationId, processedData, user.id);
+        if (result) {
+          toast.success("Application saved successfully");
+          onSuccess();
+        } else {
+          toast.error("Failed to save application");
+        }
+      } catch (error) {
+        console.error("Error saving application:", error);
+        toast.error("An error occurred while saving the application.");
       }
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) return;
 
     if (user && applicationId) {
@@ -220,16 +239,20 @@ export default function ApplicationForm({
         ...formData,
         loanAmount: Number(formData.loanAmount),
         monthlyIncome: Number(formData.monthlyIncome),
-        existingLoans: formData.existingLoans === true
+        existingLoans: formData.existingLoans === true,
       };
 
-      const result = submitApplicationForm(applicationId, processedData, user.id);
-
-      if (result) {
-        toast.success("Application submitted successfully");
-        onSuccess();
-      } else {
-        toast.error("Failed to submit application");
+      try {
+        const result = await submitApplicationForm(applicationId, processedData, user.id);
+        if (result) {
+          toast.success("Application submitted successfully");
+          onSuccess();
+        } else {
+          toast.error("Failed to submit application");
+        }
+      } catch (error) {
+        console.error("Error submitting application:", error);
+        toast.error("An error occurred while submitting the application.");
       }
     }
   };
@@ -241,8 +264,8 @@ export default function ApplicationForm({
           <DialogTitle>New Loan Application</DialogTitle>
           <DialogDescription>
             {step === 1 && "Select loan type and customer type"}
-            {step === 2 && customerType === CustomerType.ETC && "Enter existing customer information"}
-            {step === 2 && customerType === CustomerType.NTC && "Enter new customer information"}
+            {step === 2 && customerType === "ETC" && "Enter existing customer information"}
+            {step === 2 && customerType === "NTC" && "Enter new customer information"}
             {step === 3 && "Fill the loan application form"}
           </DialogDescription>
         </DialogHeader>
@@ -251,8 +274,8 @@ export default function ApplicationForm({
           <div className="grid gap-6 py-4">
             <div className="grid gap-2">
               <Label htmlFor="loanType">Loan Type</Label>
-              <Select 
-                value={loanType} 
+              <Select
+                value={loanType}
                 onValueChange={(value) => setLoanType(value as LoanType)}
               >
                 <SelectTrigger id="loanType">
@@ -269,18 +292,14 @@ export default function ApplicationForm({
 
             <div className="grid gap-2">
               <Label htmlFor="customerType">Customer Type</Label>
-              <Tabs 
-                value={customerType} 
+              <Tabs
+                value={customerType}
                 onValueChange={(value) => setCustomerType(value as CustomerType)}
                 className="w-full"
               >
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value={CustomerType.ETC}>
-                    Existing Customer (ETC)
-                  </TabsTrigger>
-                  <TabsTrigger value={CustomerType.NTC}>
-                    New Customer (NTC)
-                  </TabsTrigger>
+                  <TabsTrigger value="ETC">Existing Customer (ETC)</TabsTrigger>
+                  <TabsTrigger value="NTC">New Customer (NTC)</TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
@@ -292,7 +311,7 @@ export default function ApplicationForm({
           </div>
         )}
 
-        {step === 2 && customerType === CustomerType.ETC && (
+        {step === 2 && customerType === "ETC" && (
           <div className="grid gap-6 py-4">
             <div className="grid gap-2">
               <Label htmlFor="custId">Customer ID</Label>
@@ -306,18 +325,20 @@ export default function ApplicationForm({
                 <Button onClick={handleSearchCustomer}>Search</Button>
               </div>
               <p className="text-sm text-muted-foreground">
-                Enter the Customer ID to retrieve existing customer information
+                Enter the Customer ID to retrieve existing customer information.
               </p>
             </div>
 
             <DialogFooter>
-              <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
+              <Button variant="outline" onClick={() => setStep(1)}>
+                Back
+              </Button>
             </DialogFooter>
           </div>
         )}
 
-        {showKYCForm && (
-          <KYCForm 
+        {showKYCForm && customerType === "NTC" && (
+          <KYCForm
             onCancel={() => setStep(1)}
             onCustomerCreated={handleCustomerCreated}
           />
@@ -345,8 +366,9 @@ export default function ApplicationForm({
                 <Input
                   id="loanAmount"
                   name="loanAmount"
+                  type="number"
                   placeholder="Enter amount"
-                  value={formData.loanAmount}
+                  value={formData.loanAmount.toString()}
                   onChange={handleFormChange}
                   className={errors.loanAmount ? "border-destructive" : ""}
                 />
@@ -355,9 +377,11 @@ export default function ApplicationForm({
 
               <div className="grid gap-2">
                 <Label htmlFor="employmentStatus">Employment Status</Label>
-                <Select 
-                  value={formData.employmentStatus} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, employmentStatus: value }))}
+                <Select
+                  value={formData.employmentStatus}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, employmentStatus: value }))
+                  }
                 >
                   <SelectTrigger id="employmentStatus">
                     <SelectValue placeholder="Select employment status" />
@@ -378,8 +402,9 @@ export default function ApplicationForm({
                 <Input
                   id="monthlyIncome"
                   name="monthlyIncome"
+                  type="number"
                   placeholder="Enter monthly income"
-                  value={formData.monthlyIncome}
+                  value={formData.monthlyIncome.toString()}
                   onChange={handleFormChange}
                   className={errors.monthlyIncome ? "border-destructive" : ""}
                 />
@@ -388,9 +413,11 @@ export default function ApplicationForm({
 
               <div className="grid gap-2">
                 <Label htmlFor="existingLoans">Existing Loans</Label>
-                <Select 
-                  value={String(formData.existingLoans)} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, existingLoans: value === 'true' }))}
+                <Select
+                  value={String(formData.existingLoans)}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, existingLoans: value === "true" }))
+                  }
                 >
                   <SelectTrigger id="existingLoans">
                     <SelectValue placeholder="Do you have existing loans?" />
@@ -404,9 +431,11 @@ export default function ApplicationForm({
 
               <div className="grid gap-2">
                 <Label htmlFor="leadSource">Lead Source</Label>
-                <Select 
-                  value={formData.leadSource} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, leadSource: value }))}
+                <Select
+                  value={formData.leadSource}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, leadSource: value }))
+                  }
                 >
                   <SelectTrigger id="leadSource">
                     <SelectValue placeholder="Select lead source" />
@@ -438,9 +467,13 @@ export default function ApplicationForm({
             </div>
 
             <DialogFooter className="flex justify-between">
-              <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
+              <Button variant="outline" onClick={() => setStep(1)}>
+                Back
+              </Button>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={handleSave}>Save Draft</Button>
+                <Button variant="outline" onClick={handleSave}>
+                  Save Draft
+                </Button>
                 <Button onClick={handleSubmit}>Submit</Button>
               </div>
             </DialogFooter>

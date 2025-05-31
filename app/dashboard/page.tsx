@@ -16,20 +16,26 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Plus, PieChart, TrendingUp, Users, FileCheck } from "lucide-react";
 import ApplicationForm from "@/components/application/application-form";
-import { Application } from "../types";
+import { Application } from "../../types";
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const { getApplicationsByPincode } = useDataStore();
   const router = useRouter();
   const [showApplicationForm, setShowApplicationForm] = useState(false);
-  const [applications, setApplications] = useState([]);
+  const [applications, setApplications] = useState<Application[]>([]);
 
   useEffect(() => {
+    console.log("in dashboard")
     if (!user) return;
 
-    const apps = getApplicationsByPincode(user.pincode);
-    setApplications(apps);
+    const getapp = async function (){
+        const apps = await getApplicationsByPincode(user.pincode);
+        setApplications(apps);
+    }
+
+    getapp()
+    
   }, [user, getApplicationsByPincode]);
 
   const getStatusColor = (status: AppStatus) => {
@@ -243,7 +249,7 @@ function ApplicationsTable({
               <TableCell>{app.appId || app.tempAppId || 'N/A'}</TableCell>
               <TableCell>
                 {app.customer?.kycVerified ? (
-                  <Badge variant="outline\" className="bg-green-100 text-green-800 border-green-200">
+                  <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
                     Verified
                   </Badge>
                 ) : (

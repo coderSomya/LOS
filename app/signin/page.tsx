@@ -17,25 +17,27 @@ export default function SigninPage() {
   const router = useRouter();
   const { login } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsLoading(true);
 
-    try {
-      const success = await login(username, password);
-      
-      if (success) {
-        toast.success("Login successful!");
-        router.push("/dashboard");
-      } else {
-        toast.error("Invalid credentials. Please try again.");
-      }
-    } catch (error) {
-      toast.error("An error occurred during login.");
-    } finally {
-      setIsLoading(false);
+  try {
+    const success = await login(username, password);
+    
+    if (success) {
+      toast.success("Login successful!");
+      console.log("logged in");
+      router.replace("/dashboard");
+      console.log("logged in 2");
+    } else {
+      toast.error("Invalid credentials. Please try again.");
     }
-  };
+  } catch (error) {
+    toast.error("An error occurred during login.");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">

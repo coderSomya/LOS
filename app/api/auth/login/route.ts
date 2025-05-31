@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
@@ -26,7 +25,30 @@ export async function POST(request: NextRequest) {
 
     const { password: _, ...userWithoutPassword } = user;
     
-    return NextResponse.json(userWithoutPassword);
+    // Create the auth state that matches your Zustand structure
+    const authState = {
+      state: {
+        user: userWithoutPassword,
+        isAuthenticated: true
+      },
+      version: 0
+    };
+    
+    const response = NextResponse.json(userWithoutPassword);
+    
+    // Set the cookie on the server side so middleware can access it immediately
+    response.cookies.set({
+      name: "auth-storage",
+      value: JSON.stringify(authState),
+      httpOnly: false, // Allow client-side access for Zustand
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: "/"
+    });
+    
+    return response;
+    
   } catch (error) {
     console.error("Error during login:", error);
     return NextResponse.json(

@@ -1,9 +1,26 @@
-
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
+import Cookies from "js-cookie";
 import { User } from "@/types";
+
+// Cookie storage adapter for Zustand
+const cookieStorage = {
+  getItem: (name: string): string | null => {
+    return Cookies.get(name) || null;
+  },
+  setItem: (name: string, value: string): void => {
+    Cookies.set(name, value, { 
+      expires: 7, // 7 days
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production'
+    });
+  },
+  removeItem: (name: string): void => {
+    Cookies.remove(name);
+  },
+};
 
 interface AuthState {
   user: User | null;
@@ -45,6 +62,7 @@ export const useAuth = create<AuthState>()(
     }),
     {
       name: "auth-storage",
+      storage: createJSONStorage(() => cookieStorage),
     }
   )
 );
