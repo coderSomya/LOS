@@ -9,7 +9,7 @@ import {
   LoanFormData,
   KycFormData
 } from "@/types";
-import { useAuth } from "./use-auth";
+import { useAuth } from "./auth";
 
 interface DataState {
   // Customer methods

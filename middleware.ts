@@ -26,6 +26,7 @@ export function middleware(request: NextRequest) {
     }
   } catch (error) {
     // If there's an error parsing the cookie, redirect to signin
+    console.error("Error parsing auth cookie:", error);
     return NextResponse.redirect(new URL("/signin", request.url));
   }
   
