@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  username      String    @unique
+  password      String
+  userType      UserType
+  pincode       String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Customer {
+  id            String    @id @default(cuid())
+  custId        String    @unique
+  name          String
+  phone         String
+  pincode       String
+  aadharNumber  String?
+  panNumber     String?
+  kycVerified   Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  applications  Application[]
+}
+
+model Application {
+  id            String    @id @default(cuid())
+  leadId        String    @unique
+  customer      Customer  @relation(fields: [customerId], references: [id])
+  customerId    String
+  tempAppId     String?   @unique
+  appId         String?   @unique
+  pincode       String
+  loanType      LoanType
+  status        AppStatus @default(DRAFT)
+  formData      Json?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  activities    ActivityLog[]
+}
+
+model ActivityLog {
+  id            String    @id @default(cuid())
+  application   Application @relation(fields: [applicationId], references: [id])
+  applicationId String
+  actionType    ActionType
+  comment       String
+  performedBy   String
+  performedAt   DateTime  @default(now())
+}
+
+enum UserType {
+  SALES_MAKER
+  SALES_CHECKER
+}
+
+enum LoanType {
+  GOLD_LOAN
+  HOME_LOAN
+  BUSINESS_LOAN
+  PERSONAL_LOAN
+}
+
+enum AppStatus {
+  DRAFT
+  FORM_SUBMITTED
+  LOAN_APPROVED
+  LOAN_REJECTED
+}
+
+enum ActionType {
+  CREATED
+  SAVED
+  SUBMITTED
+  APPROVED
+  REJECTED
+  KYC_VERIFIED
+}
