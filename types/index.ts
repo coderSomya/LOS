@@ -1,44 +1,14 @@
-export type User = {
+
+export interface User {
   id: string;
   username: string;
   userType: UserType;
   pincode: string;
-};
-
-export enum UserType {
-  SALES_MAKER = "SALES_MAKER",
-  SALES_CHECKER = "SALES_CHECKER"
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export enum LoanType {
-  GOLD_LOAN = "GOLD_LOAN",
-  HOME_LOAN = "HOME_LOAN",
-  BUSINESS_LOAN = "BUSINESS_LOAN",
-  PERSONAL_LOAN = "PERSONAL_LOAN"
-}
-
-export enum CustomerType {
-  ETC = "ETC", // Existing To Company
-  NTC = "NTC"  // New To Company
-}
-
-export enum AppStatus {
-  DRAFT = "DRAFT",
-  FORM_SUBMITTED = "FORM_SUBMITTED",
-  LOAN_APPROVED = "LOAN_APPROVED",
-  LOAN_REJECTED = "LOAN_REJECTED"
-}
-
-export enum ActionType {
-  CREATED = "CREATED",
-  SAVED = "SAVED",
-  SUBMITTED = "SUBMITTED",
-  APPROVED = "APPROVED",
-  REJECTED = "REJECTED",
-  KYC_VERIFIED = "KYC_VERIFIED"
-}
-
-export type Customer = {
+export interface Customer {
   id: string;
   custId: string;
   name: string;
@@ -47,13 +17,15 @@ export type Customer = {
   aadharNumber?: string;
   panNumber?: string;
   kycVerified: boolean;
-  createdAt: string;
-  updatedAt: string;
-};
+  createdAt: Date;
+  updatedAt: Date;
+  applications?: Application[];
+}
 
-export type Application = {
+export interface Application {
   id: string;
   leadId: string;
+  customer: Customer;
   customerId: string;
   tempAppId?: string;
   appId?: string;
@@ -61,34 +33,61 @@ export type Application = {
   loanType: LoanType;
   status: AppStatus;
   formData?: any;
-  customer?: Customer;
-  createdAt: string;
-  updatedAt: string;
-};
+  createdAt: Date;
+  updatedAt: Date;
+  activities?: ActivityLog[];
+}
 
-export type ActivityLog = {
+export interface ActivityLog {
   id: string;
+  application: Application;
   applicationId: string;
   actionType: ActionType;
   comment: string;
   performedBy: string;
-  performedAt: string;
-};
+  performedAt: Date;
+}
 
-export type KycFormData = {
-  name: string;
-  phone: string;
-  pincode: string;
-  aadharNumber: string;
-  panNumber: string;
-};
-
-export type LoanFormData = {
+export interface LoanFormData {
   fullName: string;
   loanAmount: number;
   loanPurpose: string;
   employmentStatus: string;
   monthlyIncome: number;
-  existingLoans: boolean;
   leadSource: string;
-};
+}
+
+export interface DataState {
+  customers: Customer[];
+  applications: Application[];
+  loading: boolean;
+  error: string | null;
+}
+
+export enum UserType {
+  SALES_MAKER = 'SALES_MAKER',
+  SALES_CHECKER = 'SALES_CHECKER'
+}
+
+export enum LoanType {
+  GOLD_LOAN = 'GOLD_LOAN',
+  HOME_LOAN = 'HOME_LOAN',
+  BUSINESS_LOAN = 'BUSINESS_LOAN',
+  PERSONAL_LOAN = 'PERSONAL_LOAN'
+}
+
+export enum AppStatus {
+  DRAFT = 'DRAFT',
+  FORM_SUBMITTED = 'FORM_SUBMITTED',
+  LOAN_APPROVED = 'LOAN_APPROVED',
+  LOAN_REJECTED = 'LOAN_REJECTED'
+}
+
+export enum ActionType {
+  CREATED = 'CREATED',
+  SAVED = 'SAVED',
+  SUBMITTED = 'SUBMITTED',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  KYC_VERIFIED = 'KYC_VERIFIED'
+}
