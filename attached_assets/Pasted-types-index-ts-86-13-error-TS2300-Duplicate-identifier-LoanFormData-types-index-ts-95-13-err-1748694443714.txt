@@ -1,0 +1,155 @@
+types/index.ts(86,13): error TS2300: Duplicate identifier 'LoanFormData'.
+types/index.ts(95,13): error TS2300: Duplicate identifier 'LoanFormData'.
+types/index.ts(78,13): error TS2300: Duplicate identifier 'KycFormData'.
+types/index.ts(105,13): error TS2300: Duplicate identifier 'KycFormData'.
+components/ui/toast.tsx(4,34): error TS2307: Cannot find module '@radix-ui/react-toast' or its corresponding type declarations.
+hooks/use-toast.ts(158,22): error TS7006: Parameter 'open' implicitly has an 'any' type.
+components/layout/navbar.tsx(26,25): error TS2820: Type '"ghost\\"' is not assignable to type '"link" | "secondary" | "destructive" | "default" | "outline" | "ghost" | null | undefined'. Did you mean '"ghost"'?
+components/layout/navbar.tsx(26,42): error TS2322: Type '"sm\\"' is not assignable to type '"lg" | "sm" | "default" | "icon" | null | undefined'.
+components/application/kyc-form.tsx(36,25): error TS7006: Parameter 'e' implicitly has an 'any' type.
+components/application/kyc-form.tsx(44,9): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ name: string; phone: string; pincode: string; aadharNumber: string; panNumber: string; }'.
+components/application/kyc-form.tsx(104,25): error TS7006: Parameter 'e' implicitly has an 'any' type.
+components/application/kyc-form.tsx(115,70): error TS2339: Property 'custId' does not exist on type 'Promise<Customer>'.
+components/application/application-form.tsx(84,27): error TS2345: Argument of type 'Promise<Customer | null>' is not assignable to parameter of type 'SetStateAction<null>'.
+  Type 'Promise<Customer | null>' provides no match for the signature '(prevState: null): null'.
+components/application/application-form.tsx(87,28): error TS2339: Property 'name' does not exist on type 'Promise<Customer | null>'.
+components/application/application-form.tsx(114,34): error TS7006: Parameter 'customer' implicitly has an 'any' type.
+components/application/application-form.tsx(132,31): error TS2339: Property 'id' does not exist on type 'Promise<Application>'.
+components/application/application-form.tsx(137,29): error TS7006: Parameter 'e' implicitly has an 'any' type.
+components/application/application-form.tsx(150,17): error TS2339: Property 'fullName' does not exist on type '{}'.
+components/application/application-form.tsx(155,17): error TS2339: Property 'loanAmount' does not exist on type '{}'.
+components/application/application-form.tsx(158,17): error TS2339: Property 'loanAmount' does not exist on type '{}'.
+components/application/application-form.tsx(163,17): error TS2339: Property 'loanPurpose' does not exist on type '{}'.
+components/application/application-form.tsx(168,17): error TS2339: Property 'employmentStatus' does not exist on type '{}'.
+components/application/application-form.tsx(173,17): error TS2339: Property 'monthlyIncome' does not exist on type '{}'.
+components/application/application-form.tsx(176,17): error TS2339: Property 'monthlyIncome' does not exist on type '{}'.
+components/application/application-form.tsx(181,17): error TS2339: Property 'leadSource' does not exist on type '{}'.
+components/application/application-form.tsx(200,57): error TS2345: Argument of type '{ loanAmount: number; monthlyIncome: number; existingLoans: boolean; fullName: string; loanPurpose: string; employmentStatus: string; leadSource: string; }' is not assignable to parameter of type 'LoanFormData'.
+  Type '{ loanAmount: number; monthlyIncome: number; existingLoans: boolean; fullName: string; loanPurpose: string; employmentStatus: string; leadSource: string; }' is missing the following properties from type 'LoanFormData': tenure, purpose, employment
+components/application/application-form.tsx(202,11): error TS2801: This condition will always return true since this 'Promise<import("/Users/somya/Desktop/dhruva/onsite/los/types/index").Application | null>' is always defined.
+components/application/application-form.tsx(222,59): error TS2345: Argument of type '{ loanAmount: number; monthlyIncome: number; existingLoans: boolean; fullName: string; loanPurpose: string; employmentStatus: string; leadSource: string; }' is not assignable to parameter of type 'LoanFormData'.
+  Type '{ loanAmount: number; monthlyIncome: number; existingLoans: boolean; fullName: string; loanPurpose: string; employmentStatus: string; leadSource: string; }' is missing the following properties from type 'LoanFormData': tenure, purpose, employment
+components/application/application-form.tsx(224,11): error TS2801: This condition will always return true since this 'Promise<import("/Users/somya/Desktop/dhruva/onsite/los/types/index").Application | null>' is always defined.
+components/application/application-form.tsx(334,37): error TS2339: Property 'fullName' does not exist on type '{}'.
+components/application/application-form.tsx(336,25): error TS2339: Property 'fullName' does not exist on type '{}'.
+components/application/application-form.tsx(336,85): error TS2339: Property 'fullName' does not exist on type '{}'.
+components/application/application-form.tsx(347,37): error TS2339: Property 'loanAmount' does not exist on type '{}'.
+components/application/application-form.tsx(349,25): error TS2339: Property 'loanAmount' does not exist on type '{}'.
+components/application/application-form.tsx(349,87): error TS2339: Property 'loanAmount' does not exist on type '{}'.
+components/application/application-form.tsx(369,25): error TS2339: Property 'employmentStatus' does not exist on type '{}'.
+components/application/application-form.tsx(369,93): error TS2339: Property 'employmentStatus' does not exist on type '{}'.
+components/application/application-form.tsx(380,37): error TS2339: Property 'monthlyIncome' does not exist on type '{}'.
+components/application/application-form.tsx(382,25): error TS2339: Property 'monthlyIncome' does not exist on type '{}'.
+components/application/application-form.tsx(382,90): error TS2339: Property 'monthlyIncome' does not exist on type '{}'.
+components/application/application-form.tsx(418,25): error TS2339: Property 'leadSource' does not exist on type '{}'.
+components/application/application-form.tsx(418,87): error TS2339: Property 'leadSource' does not exist on type '{}'.
+components/application/application-form.tsx(431,35): error TS2339: Property 'loanPurpose' does not exist on type '{}'.
+components/application/application-form.tsx(433,23): error TS2339: Property 'loanPurpose' does not exist on type '{}'.
+components/application/application-form.tsx(433,86): error TS2339: Property 'loanPurpose' does not exist on type '{}'.
+app/applications/page.tsx(34,21): error TS2345: Argument of type 'Promise<Application[]>' is not assignable to parameter of type 'SetStateAction<Application[]>'.
+app/applications/page.tsx(35,29): error TS2345: Argument of type 'Promise<Application[]>' is not assignable to parameter of type 'SetStateAction<Application[]>'.
+app/applications/page.tsx(80,21): error TS2345: Argument of type 'Promise<Application[]>' is not assignable to parameter of type 'SetStateAction<Application[]>'.
+app/applications/page.tsx(81,29): error TS2345: Argument of type 'Promise<Application[]>' is not assignable to parameter of type 'SetStateAction<Application[]>'.
+app/applications/page.tsx(142,32): error TS2820: Type '"outline\\"' is not assignable to type '"secondary" | "destructive" | "default" | "outline" | null | undefined'. Did you mean '"outline"'?
+app/applications/[id]/page.tsx(51,20): error TS2345: Argument of type 'Promise<Application | null>' is not assignable to parameter of type 'SetStateAction<null>'.
+  Type 'Promise<Application | null>' provides no match for the signature '(prevState: null): null'.
+app/applications/[id]/page.tsx(54,19): error TS2345: Argument of type 'Promise<ActivityLog[]>' is not assignable to parameter of type 'SetStateAction<never[]>'.
+app/applications/[id]/page.tsx(94,31): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(97,19): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(102,9): error TS2801: This condition will always return true since this 'Promise<boolean>' is always defined.
+app/applications/[id]/page.tsx(107,22): error TS2345: Argument of type 'Promise<Application | null>' is not assignable to parameter of type 'SetStateAction<null>'.
+app/applications/[id]/page.tsx(111,21): error TS2345: Argument of type 'Promise<ActivityLog[]>' is not assignable to parameter of type 'SetStateAction<never[]>'.
+app/applications/[id]/page.tsx(125,9): error TS2801: This condition will always return true since this 'Promise<import("/Users/somya/Desktop/dhruva/onsite/los/types/index").Application | null>' is always defined.
+app/applications/[id]/page.tsx(131,22): error TS2345: Argument of type 'Promise<Application | null>' is not assignable to parameter of type 'SetStateAction<null>'.
+app/applications/[id]/page.tsx(135,21): error TS2345: Argument of type 'Promise<ActivityLog[]>' is not assignable to parameter of type 'SetStateAction<never[]>'.
+app/applications/[id]/page.tsx(149,9): error TS2801: This condition will always return true since this 'Promise<import("/Users/somya/Desktop/dhruva/onsite/los/types/index").Application | null>' is always defined.
+app/applications/[id]/page.tsx(155,22): error TS2345: Argument of type 'Promise<Application | null>' is not assignable to parameter of type 'SetStateAction<null>'.
+app/applications/[id]/page.tsx(159,21): error TS2345: Argument of type 'Promise<ActivityLog[]>' is not assignable to parameter of type 'SetStateAction<never[]>'.
+app/applications/[id]/page.tsx(209,76): error TS2339: Property 'status' does not exist on type 'never'.
+app/applications/[id]/page.tsx(210,41): error TS2339: Property 'status' does not exist on type 'never'.
+app/applications/[id]/page.tsx(214,35): error TS2339: Property 'leadId' does not exist on type 'never'.
+app/applications/[id]/page.tsx(215,26): error TS2339: Property 'appId' does not exist on type 'never'.
+app/applications/[id]/page.tsx(215,66): error TS2339: Property 'appId' does not exist on type 'never'.
+app/applications/[id]/page.tsx(215,88): error TS2339: Property 'tempAppId' does not exist on type 'never'.
+app/applications/[id]/page.tsx(215,125): error TS2339: Property 'tempAppId' does not exist on type 'never'.
+app/applications/[id]/page.tsx(238,49): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(245,65): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(249,65): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(253,65): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(258,75): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(262,42): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(268,54): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(278,65): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(282,65): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(292,62): error TS2339: Property 'loanType' does not exist on type 'never'.
+app/applications/[id]/page.tsx(296,34): error TS2339: Property 'formData' does not exist on type 'never'.
+app/applications/[id]/page.tsx(300,68): error TS2339: Property 'formData' does not exist on type 'never'.
+app/applications/[id]/page.tsx(304,68): error TS2339: Property 'formData' does not exist on type 'never'.
+app/applications/[id]/page.tsx(308,67): error TS2339: Property 'formData' does not exist on type 'never'.
+app/applications/[id]/page.tsx(312,67): error TS2339: Property 'formData' does not exist on type 'never'.
+app/applications/[id]/page.tsx(316,67): error TS2339: Property 'formData' does not exist on type 'never'.
+app/applications/[id]/page.tsx(320,67): error TS2339: Property 'formData' does not exist on type 'never'.
+app/applications/[id]/page.tsx(328,32): error TS2339: Property 'status' does not exist on type 'never'.
+app/applications/[id]/page.tsx(358,44): error TS2339: Property 'id' does not exist on type 'never'.
+app/applications/[id]/page.tsx(359,125): error TS2339: Property 'actionType' does not exist on type 'never'.
+app/applications/[id]/page.tsx(360,39): error TS2339: Property 'actionType' does not exist on type 'never'.
+app/applications/[id]/page.tsx(364,87): error TS2339: Property 'actionType' does not exist on type 'never'.
+app/applications/[id]/page.tsx(366,67): error TS2339: Property 'performedAt' does not exist on type 'never'.
+app/applications/[id]/page.tsx(369,84): error TS2339: Property 'comment' does not exist on type 'never'.
+app/applications/[id]/page.tsx(390,72): error TS2339: Property 'status' does not exist on type 'never'.
+app/applications/[id]/page.tsx(394,74): error TS2339: Property 'loanType' does not exist on type 'never'.
+app/applications/[id]/page.tsx(398,59): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(402,68): error TS2339: Property 'createdAt' does not exist on type 'never'.
+app/applications/[id]/page.tsx(406,68): error TS2339: Property 'updatedAt' does not exist on type 'never'.
+app/customers/page.tsx(19,11): error TS2339: Property 'customers' does not exist on type 'DataState'.
+app/customers/page.tsx(27,10): error TS7006: Parameter 'cust' implicitly has an 'any' type.
+app/customers/page.tsx(37,8): error TS7006: Parameter 'cust' implicitly has an 'any' type.
+app/customers/page.tsx(47,8): error TS7006: Parameter 'cust' implicitly has an 'any' type.
+app/dashboard/page.tsx(31,21): error TS2345: Argument of type 'Promise<Application[]>' is not assignable to parameter of type 'SetStateAction<never[]>'.
+app/dashboard/page.tsx(54,43): error TS2339: Property 'status' does not exist on type 'never'.
+app/dashboard/page.tsx(152,37): error TS7006: Parameter 'id' implicitly has an 'any' type.
+app/dashboard/page.tsx(157,62): error TS2339: Property 'status' does not exist on type 'never'.
+app/dashboard/page.tsx(160,37): error TS7006: Parameter 'id' implicitly has an 'any' type.
+app/dashboard/page.tsx(165,62): error TS2339: Property 'status' does not exist on type 'never'.
+app/dashboard/page.tsx(168,37): error TS7006: Parameter 'id' implicitly has an 'any' type.
+app/dashboard/page.tsx(173,62): error TS2339: Property 'status' does not exist on type 'never'.
+app/dashboard/page.tsx(176,37): error TS7006: Parameter 'id' implicitly has an 'any' type.
+app/dashboard/page.tsx(192,31): error TS2345: Argument of type 'Promise<Application[]>' is not assignable to parameter of type 'SetStateAction<never[]>'.
+app/dashboard/page.tsx(202,3): error TS7031: Binding element 'applications' implicitly has an 'any' type.
+app/dashboard/page.tsx(203,3): error TS7031: Binding element 'getStatusColor' implicitly has an 'any' type.
+app/dashboard/page.tsx(204,3): error TS7031: Binding element 'formatStatus' implicitly has an 'any' type.
+app/dashboard/page.tsx(205,3): error TS7031: Binding element 'onViewApplication' implicitly has an 'any' type.
+app/dashboard/page.tsx(229,30): error TS7006: Parameter 'app' implicitly has an 'any' type.
+app/dashboard/page.tsx(240,26): error TS2820: Type '"outline\\"' is not assignable to type '"secondary" | "destructive" | "default" | "outline" | null | undefined'. Did you mean '"outline"'?
+components/ui/accordion.tsx(4,37): error TS2307: Cannot find module '@radix-ui/react-accordion' or its corresponding type declarations.
+components/ui/alert-dialog.tsx(4,39): error TS2307: Cannot find module '@radix-ui/react-alert-dialog' or its corresponding type declarations.
+components/ui/aspect-ratio.tsx(3,39): error TS2307: Cannot find module '@radix-ui/react-aspect-ratio' or its corresponding type declarations.
+components/ui/avatar.tsx(4,34): error TS2307: Cannot find module '@radix-ui/react-avatar' or its corresponding type declarations.
+components/ui/calendar.tsx(5,27): error TS2307: Cannot find module 'react-day-picker' or its corresponding type declarations.
+components/ui/carousel.tsx(6,8): error TS2307: Cannot find module 'embla-carousel-react' or its corresponding type declarations.
+components/ui/chart.tsx(4,36): error TS2307: Cannot find module 'recharts' or its corresponding type declarations.
+components/ui/chart.tsx(188,25): error TS7006: Parameter 'item' implicitly has an 'any' type.
+components/ui/chart.tsx(188,31): error TS7006: Parameter 'index' implicitly has an 'any' type.
+components/ui/chart.tsx(288,23): error TS7006: Parameter 'item' implicitly has an 'any' type.
+components/ui/checkbox.tsx(4,36): error TS2307: Cannot find module '@radix-ui/react-checkbox' or its corresponding type declarations.
+components/ui/collapsible.tsx(3,39): error TS2307: Cannot find module '@radix-ui/react-collapsible' or its corresponding type declarations.
+components/ui/command.tsx(5,45): error TS2307: Cannot find module 'cmdk' or its corresponding type declarations.
+components/ui/context-menu.tsx(4,39): error TS2307: Cannot find module '@radix-ui/react-context-menu' or its corresponding type declarations.
+components/ui/drawer.tsx(4,43): error TS2307: Cannot find module 'vaul' or its corresponding type declarations.
+components/ui/hover-card.tsx(4,37): error TS2307: Cannot find module '@radix-ui/react-hover-card' or its corresponding type declarations.
+components/ui/input-otp.tsx(4,43): error TS2307: Cannot find module 'input-otp' or its corresponding type declarations.
+components/ui/input-otp.tsx(38,44): error TS18047: 'inputOTPContext' is possibly 'null'.
+components/ui/input-otp.tsx(38,60): error TS2339: Property 'slots' does not exist on type 'string | number | boolean | ServerContextJSONArray | { [key: string]: ServerContextJSONValue; }'.
+  Property 'slots' does not exist on type 'string'.
+components/ui/menubar.tsx(4,35): error TS2307: Cannot find module '@radix-ui/react-menubar' or its corresponding type declarations.
+components/ui/navigation-menu.tsx(2,42): error TS2307: Cannot find module '@radix-ui/react-navigation-menu' or its corresponding type declarations.
+components/ui/popover.tsx(4,35): error TS2307: Cannot find module '@radix-ui/react-popover' or its corresponding type declarations.
+components/ui/progress.tsx(4,36): error TS2307: Cannot find module '@radix-ui/react-progress' or its corresponding type declarations.
+components/ui/radio-group.tsx(4,38): error TS2307: Cannot find module '@radix-ui/react-radio-group' or its corresponding type declarations.
+components/ui/resizable.tsx(4,37): error TS2307: Cannot find module 'react-resizable-panels' or its corresponding type declarations.
+components/ui/scroll-area.tsx(4,38): error TS2307: Cannot find module '@radix-ui/react-scroll-area' or its corresponding type declarations.
+components/ui/separator.tsx(4,37): error TS2307: Cannot find module '@radix-ui/react-separator' or its corresponding type declarations.
+components/ui/slider.tsx(4,34): error TS2307: Cannot find module '@radix-ui/react-slider' or its corresponding type declarations.
+components/ui/toggle.tsx(4,34): error TS2307: Cannot find module '@radix-ui/react-toggle' or its corresponding type declarations.
+components/ui/toggle-group.tsx(4,39): error TS2307: Cannot find module '@radix-ui/react-toggle-group' or its corresponding type declarations.
+components/ui/tooltip.tsx(4,35): error TS2307: Cannot find module '@radix-ui/react-tooltip' or its corresponding type declarations.
