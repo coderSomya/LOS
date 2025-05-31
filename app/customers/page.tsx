@@ -14,36 +14,51 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { Customer } from "@/types";
 
-export default function CustomersPage() {
+export default function CustomersPage(): JSX.Element {
   const { user } = useAuth();
-  const { customers } = useDataStore();
+  const { getCustomersByPincode } = useDataStore();
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>("");
 
+  // Load customers when component mounts or user changes
   useEffect(() => {
-    // Filter customers by user's pincode
-    if (user) {
-      const customersByPincode = customers.filter(
-        (cust) => cust.pincode === user.pincode
-      );
-      setFilteredCustomers(customersByPincode);
-    }
-  }, [customers, user]);
+    const loadCustomers = async () => {
+      if (!user?.pincode) {
+        setIsLoading(false);
+        return;
+      }
 
+      try {
+        setIsLoading(true);
+        const customersList = await getCustomersByPincode(user.pincode);
+        setCustomers(customersList);
+        setFilteredCustomers(customersList);
+        setError("");
+      } catch (err) {
+        console.error("Error loading customers:", err);
+        setError("Failed to load customers");
+        setCustomers([]);
+        setFilteredCustomers([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadCustomers();
+  }, [user?.pincode, getCustomersByPincode]);
+
+  // Filter customers based on search term
   useEffect(() => {
-    if (!user) return;
-    
-    const customersByPincode = customers.filter(
-      (cust) => cust.pincode === user.pincode
-    );
-    
     if (!searchTerm.trim()) {
-      setFilteredCustomers(customersByPincode);
+      setFilteredCustomers(customers);
       return;
     }
 
     const term = searchTerm.toLowerCase();
-    const filtered = customersByPincode.filter(
+    const filtered = customers.filter(
       (cust) =>
         cust.name.toLowerCase().includes(term) ||
         cust.phone.toLowerCase().includes(term) ||
@@ -53,12 +68,29 @@ export default function CustomersPage() {
     );
 
     setFilteredCustomers(filtered);
-  }, [searchTerm, customers, user]);
+  }, [searchTerm, customers]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    setSearchTerm(e.target.value);
+  };
+
+  if (!user) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-96">
+          <p className="text-muted-foreground">Please log in to view customers.</p>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Customers</h1>
+        <div className="text-sm text-muted-foreground">
+          Pincode: {user.pincode}
+        </div>
       </div>
 
       <Card>
@@ -73,67 +105,92 @@ export default function CustomersPage() {
                 placeholder="Search by name, phone, customer ID, Aadhar, or PAN..."
                 className="pl-8"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={handleSearchChange}
               />
             </div>
           </div>
 
-          <div className="border rounded-md">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Customer ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Pincode</TableHead>
-                  <TableHead>Aadhar Number</TableHead>
-                  <TableHead>PAN Number</TableHead>
-                  <TableHead>KYC Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredCustomers.length === 0 && (
+          {error ? (
+            <div className="text-center py-8">
+              <p className="text-destructive mb-4">{error}</p>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="text-primary hover:underline"
+              >
+                Try again
+              </button>
+            </div>
+          ) : (
+            <div className="border rounded-md">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell
-                      colSpan={7}
-                      className="text-center text-muted-foreground py-8"
-                    >
-                      No customers found
-                    </TableCell>
+                    <TableHead>Customer ID</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Pincode</TableHead>
+                    <TableHead>Aadhar Number</TableHead>
+                    <TableHead>PAN Number</TableHead>
+                    <TableHead>KYC Status</TableHead>
                   </TableRow>
-                )}
-                {filteredCustomers.map((customer) => (
-                  <TableRow key={customer.id}>
-                    <TableCell className="font-medium">
-                      {customer.custId}
-                    </TableCell>
-                    <TableCell>{customer.name}</TableCell>
-                    <TableCell>{customer.phone}</TableCell>
-                    <TableCell>{customer.pincode}</TableCell>
-                    <TableCell>{customer.aadharNumber || "N/A"}</TableCell>
-                    <TableCell>{customer.panNumber || "N/A"}</TableCell>
-                    <TableCell>
-                      {customer.kycVerified ? (
-                        <Badge
-                          variant="outline"
-                          className="bg-green-100 text-green-800 border-green-200"
-                        >
-                          Verified
-                        </Badge>
-                      ) : (
-                        <Badge
-                          variant="outline"
-                          className="bg-amber-100 text-amber-800 border-amber-200"
-                        >
-                          Pending
-                        </Badge>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={7}
+                        className="text-center text-muted-foreground py-8"
+                      >
+                        <div className="flex items-center justify-center">
+                          <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full mr-2"></div>
+                          Loading customers...
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredCustomers.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={7}
+                        className="text-center text-muted-foreground py-8"
+                      >
+                        {searchTerm.trim() ? "No customers found matching your search" : "No customers found"}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredCustomers.map((customer) => (
+                      <TableRow key={customer.id}>
+                        <TableCell className="font-medium">
+                          {customer.custId}
+                        </TableCell>
+                        <TableCell>{customer.name}</TableCell>
+                        <TableCell>{customer.phone}</TableCell>
+                        <TableCell>{customer.pincode}</TableCell>
+                        <TableCell>{customer.aadharNumber || "N/A"}</TableCell>
+                        <TableCell>{customer.panNumber || "N/A"}</TableCell>
+                        <TableCell>
+                          {customer.kycVerified ? (
+                            <Badge
+                              variant="outline"
+                              className="bg-green-100 text-green-800 border-green-200"
+                            >
+                              Verified
+                            </Badge>
+                          ) : (
+                            <Badge
+                              variant="outline"
+                              className="bg-amber-100 text-amber-800 border-amber-200"
+                            >
+                              Pending
+                            </Badge>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </MainLayout>

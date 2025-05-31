@@ -24,10 +24,10 @@ model Customer {
   id            String    @id @default(cuid())
   custId        String    @unique
   name          String
-  phone         String
+  phone         String    @unique  // Added @unique constraint
   pincode       String
-  aadharNumber  String?
-  panNumber     String?
+  aadharNumber  String?   @unique  // Added @unique constraint since Aadhar should be unique
+  panNumber     String?   @unique  // Added @unique constraint since PAN should be unique
   kycVerified   Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

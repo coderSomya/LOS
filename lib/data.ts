@@ -16,6 +16,7 @@ interface DataState {
   addCustomer: (customerData: KycFormData) => Promise<Customer>;
   getCustomerById: (custId: string) => Promise<Customer | null>;
   getCustomerByPhone: (phone: string) => Promise<Customer | null>;
+  getCustomersByPincode: (pincode: string) => Promise<Customer[]>;
   updateCustomerKyc: (custId: string, verified: boolean, userId: string) => Promise<boolean>;
 
   // Application methods
@@ -53,153 +54,240 @@ interface DataState {
 
 export const useDataStore = create<DataState>()((set, get) => ({
   // Customer methods
-  addCustomer: async (customerData) => {
-        const response = await fetch('/api/customers', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(customerData),
-        });
+  addCustomer: async (customerData: KycFormData): Promise<Customer> => {
+    try {
+      const response = await fetch('/api/customers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(customerData),
+      });
 
-        if (!response.ok) {
-          throw new Error('Failed to create customer');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create customer');
+      }
+
+      const customer = await response.json();
+      return customer;
+    } catch (error) {
+      console.error('Error creating customer:', error);
+      throw error;
+    }
+  },
+
+  getCustomerById: async (custId: string): Promise<Customer | null> => {
+    try {
+      const response = await fetch(`/api/customers?custId=${encodeURIComponent(custId)}`);
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null;
         }
+        throw new Error('Failed to fetch customer');
+      }
 
-        const customer = await response.json();
-
-        return customer;
-      },
-
-  getCustomerById: async (custId: string) => {
-    const response = await fetch(`/api/customers?custId=${custId}`);
-
-    if (!response.ok) {
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching customer by ID:', error);
       return null;
     }
-
-    return response.json();
   },
 
-  getCustomerByPhone: async (phone: string) => {
-    const response = await fetch(`/api/customers?phone=${phone}`);
+  getCustomerByPhone: async (phone: string): Promise<Customer | null> => {
+    try {
+      const response = await fetch(`/api/customers?phone=${encodeURIComponent(phone)}`);
 
-    if (!response.ok) {
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null;
+        }
+        throw new Error('Failed to fetch customer');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching customer by phone:', error);
       return null;
     }
-
-    return response.json();
   },
 
-  updateCustomerKyc: async (custId: string, verified: boolean, userId: string) => {
-    const response = await fetch(`/api/customers/${custId}/kyc`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ verified, userId }),
-    });
+  getCustomersByPincode: async (pincode: string): Promise<Customer[]> => {
+    try {
+      const response = await fetch(`/api/customers?pincode=${encodeURIComponent(pincode)}`);
 
-    return response.ok;
+      if (!response.ok) {
+        throw new Error('Failed to fetch customers');
+      }
+
+      const customers = await response.json();
+      return Array.isArray(customers) ? customers : [];
+    } catch (error) {
+      console.error('Error fetching customers by pincode:', error);
+      throw error;
+    }
+  },
+
+  updateCustomerKyc: async (custId: string, verified: boolean, userId: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`/api/customers/${encodeURIComponent(custId)}/kyc`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ verified, userId }),
+      });
+
+      return response.ok;
+    } catch (error) {
+      console.error('Error updating customer KYC:', error);
+      return false;
+    }
   },
 
   // Application methods
-  createApplication: async (data) => {
-        const user = useAuth.getState().user;
-        const response = await fetch('/api/applications', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...data, userId: user?.id }),
-        });
+  createApplication: async (data): Promise<Application> => {
+    try {
+      const user = useAuth.getState().user;
+      const response = await fetch('/api/applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, userId: user?.id }),
+      });
 
-        if (!response.ok) {
-          throw new Error('Failed to create application');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create application');
+      }
+
+      const application = await response.json();
+      return application;
+    } catch (error) {
+      console.error('Error creating application:', error);
+      throw error;
+    }
+  },
+
+  getApplicationsByPincode: async (pincode: string): Promise<Application[]> => {
+    try {
+      const response = await fetch(`/api/applications?pincode=${encodeURIComponent(pincode)}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch applications');
+      }
+      
+      const applications = await response.json();
+      return Array.isArray(applications) ? applications : [];
+    } catch (error) {
+      console.error('Error fetching applications by pincode:', error);
+      throw error;
+    }
+  },
+
+  getApplicationById: async (id: string): Promise<Application | null> => {
+    try {
+      const response = await fetch(`/api/applications/${encodeURIComponent(id)}`);
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null;
         }
+        throw new Error('Failed to fetch application');
+      }
 
-        const application = await response.json();
-
-        return application;
-      },
-
-  getApplicationsByPincode: async (pincode) => {
-        const response = await fetch(`/api/applications?pincode=${pincode}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch applications');
-        }
-        const applications = await response.json();
-
-        return applications;
-      },
-
-  getApplicationById: async (id: string) => {
-    const response = await fetch(`/api/applications/${id}`);
-
-    if (!response.ok) {
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching application by ID:', error);
       return null;
     }
-
-    return response.json();
   },
 
-  getActivitiesByApplicationId: async (appId: string) => {
-    const response = await fetch(`/api/applications/${appId}/activities`);
+  getActivitiesByApplicationId: async (appId: string): Promise<ActivityLog[]> => {
+    try {
+      const response = await fetch(`/api/applications/${encodeURIComponent(appId)}/activities`);
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch activities");
+      if (!response.ok) {
+        throw new Error("Failed to fetch activities");
+      }
+
+      const activities = await response.json();
+      return Array.isArray(activities) ? activities : [];
+    } catch (error) {
+      console.error('Error fetching activities:', error);
+      return [];
     }
-
-    return response.json();
   },
 
-  saveApplicationForm: async (appId: string, formData: LoanFormData, userId: string) => {
-    const response = await fetch(`/api/applications/${appId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "save", formData, userId }),
-    });
+  saveApplicationForm: async (appId: string, formData: LoanFormData, userId: string): Promise<Application | null> => {
+    try {
+      const response = await fetch(`/api/applications/${encodeURIComponent(appId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "save", formData, userId }),
+      });
 
-    if (!response.ok) {
+      if (!response.ok) {
+        return null;
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error saving application form:', error);
       return null;
     }
-
-    return response.json();
   },
 
-  submitApplicationForm: async (appId: string, formData: LoanFormData, userId: string) => {
-    const response = await fetch(`/api/applications/${appId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "submit", formData, userId }),
-    });
+  submitApplicationForm: async (appId: string, formData: LoanFormData, userId: string): Promise<Application | null> => {
+    try {
+      const response = await fetch(`/api/applications/${encodeURIComponent(appId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "submit", formData, userId }),
+      });
 
-    if (!response.ok) {
+      if (!response.ok) {
+        return null;
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error submitting application form:', error);
       return null;
     }
-
-    return response.json();
   },
 
-  approveApplication: async (appId: string, userId: string, comment: string) => {
-    const response = await fetch(`/api/applications/${appId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "approve", userId, comment }),
-    });
+  approveApplication: async (appId: string, userId: string, comment: string): Promise<Application | null> => {
+    try {
+      const response = await fetch(`/api/applications/${encodeURIComponent(appId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "approve", userId, comment }),
+      });
 
-    if (!response.ok) {
+      if (!response.ok) {
+        return null;
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error approving application:', error);
       return null;
     }
-
-    return response.json();
   },
 
-  rejectApplication: async (appId: string, userId: string, comment: string) => {
-    const response = await fetch(`/api/applications/${appId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "reject", userId, comment }),
-    });
+  rejectApplication: async (appId: string, userId: string, comment: string): Promise<Application | null> => {
+    try {
+      const response = await fetch(`/api/applications/${encodeURIComponent(appId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "reject", userId, comment }),
+      });
 
-    if (!response.ok) {
+      if (!response.ok) {
+        return null;
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error rejecting application:', error);
       return null;
     }
-
-    return response.json();
   },
 }));
