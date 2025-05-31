@@ -16,7 +16,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Plus, PieChart, TrendingUp, Users, FileCheck } from "lucide-react";
 import ApplicationForm from "@/components/application/application-form";
-import { Application } from "../../types";
+import { Application } from "@/types";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -35,7 +35,7 @@ export default function DashboardPage() {
     }
 
     getapp()
-    
+
   }, [user, getApplicationsByPincode]);
 
   const getStatusColor = (status: AppStatus) => {
@@ -264,11 +264,7 @@ function ApplicationsTable({
                 </Badge>
               </TableCell>
               <TableCell>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => onViewApplication(app.id)}
-                >
+                <Button variant="outline" size="sm">
                   View
                 </Button>
               </TableCell>

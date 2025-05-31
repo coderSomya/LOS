@@ -23,7 +23,8 @@ interface DataState {
     customerId: string,
     pincode: string,
     loanType: LoanType,
-    userId: string
+    userId: string,
+    leadId: string;
   }) => Promise<Application>;
   getApplicationsByPincode: (pincode: string) => Promise<Application[]>;
   getApplicationById: (id: string) => Promise<Application | null>;

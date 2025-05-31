@@ -57,6 +57,14 @@ export interface LoanFormData {
   leadSource: string;
 }
 
+export interface KycFormData {
+  name: string;
+  phone: string;
+  pincode: string;
+  aadharNumber?: string;
+  panNumber?: string;
+}
+
 export interface DataState {
   customers: Customer[];
   applications: Application[];

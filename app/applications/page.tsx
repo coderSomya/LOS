@@ -15,8 +15,9 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Search } from "lucide-react";
-import { AppStatus, UserType, Application } from "@/types";
+import { UserType, AppStatus, Application } from "@/types";
 import ApplicationForm from "@/components/application/application-form";
+import Link from "next/link";
 
 export default function ApplicationsPage() {
   const { user } = useAuth();
@@ -24,8 +25,9 @@ export default function ApplicationsPage() {
   const router = useRouter();
   const [applications, setApplications] = useState<Application[]>([]);
   const [filteredApplications, setFilteredApplications] = useState<Application[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [editApplication, setEditApplication] = useState<Application | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -83,6 +85,17 @@ export default function ApplicationsPage() {
     const apps = await getApplicationsByPincode(user.pincode);
     setApplications(apps);
     setFilteredApplications(apps);
+  };
+
+  const handleSuccess = () => {
+    setShowForm(false);
+    setEditApplication(null);
+    handleRefreshData();
+  };
+
+  const handleEdit = (application: Application) => {
+    setEditApplication(application);
+    setShowForm(true);
   };
 
   return (
@@ -158,14 +171,24 @@ export default function ApplicationsPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => router.push(`/applications/${app.id}`)}
-                      >
-                        View
-                      </Button>
-                    </TableCell>
+                        <div className="flex gap-2">
+                          <Link
+                            href={`/applications/${app.id}`}
+                            className="text-blue-600 hover:underline"
+                          >
+                            View
+                          </Link>
+                          {app.status === AppStatus.DRAFT && user?.userType === UserType.SALES_MAKER && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(app)}
+                            >
+                              Edit
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -175,13 +198,14 @@ export default function ApplicationsPage() {
       </Card>
 
       {showForm && (
-        <ApplicationForm 
-          open={showForm} 
-          onClose={() => setShowForm(false)}
-          onSuccess={() => {
+        <ApplicationForm
+          open={showForm}
+          onClose={() => {
             setShowForm(false);
-            handleRefreshData();
+            setEditApplication(null);
           }}
+          onSuccess={handleSuccess}
+          editApplication={editApplication}
         />
       )}
     </MainLayout>

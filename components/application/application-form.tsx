@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useDataStore } from "@/lib/data";
 import {
@@ -27,7 +28,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { Customer, LoanType } from "@/types";
+import { Customer, LoanType, Application, AppStatus } from "@/types";
 import { KYCForm } from "@/components/application/kyc-form";
 import { toast } from "sonner";
 
@@ -47,10 +48,12 @@ export default function ApplicationForm({
   open,
   onClose,
   onSuccess,
+  editApplication,
 }: {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  editApplication?: Application | null;
 }) {
   const { user } = useAuth();
   const {
@@ -64,6 +67,7 @@ export default function ApplicationForm({
   const [loanType, setLoanType] = useState<LoanType | "">("");
   const [customerType, setCustomerType] = useState<CustomerType | "">("");
   const [custId, setCustId] = useState<string>("");
+  const [leadId, setLeadId] = useState<string>("");
   const [existingCustomer, setExistingCustomer] = useState<Customer | null>(null);
   const [showKYCForm, setShowKYCForm] = useState<boolean>(false);
   const [applicationId, setApplicationId] = useState<string>("");
@@ -77,6 +81,36 @@ export default function ApplicationForm({
     leadSource: "",
   });
   const [errors, setErrors] = useState<Partial<Record<keyof LoanFormData, string>>>({});
+
+  // Initialize form for editing existing application
+  useEffect(() => {
+    if (editApplication) {
+      setApplicationId(editApplication.id);
+      setLoanType(editApplication.loanType);
+      setLeadId(editApplication.leadId);
+      setExistingCustomer(editApplication.customer);
+      setCustomerType("ETC"); // Existing application means existing customer
+      
+      if (editApplication.formData) {
+        setFormData({
+          fullName: editApplication.formData.fullName || editApplication.customer.name,
+          loanAmount: editApplication.formData.loanAmount || 0,
+          loanPurpose: editApplication.formData.loanPurpose || "",
+          employmentStatus: editApplication.formData.employmentStatus || "",
+          monthlyIncome: editApplication.formData.monthlyIncome || 0,
+          existingLoans: editApplication.formData.existingLoans || false,
+          leadSource: editApplication.formData.leadSource || "",
+        });
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          fullName: editApplication.customer.name,
+        }));
+      }
+      
+      setStep(3); // Go directly to form step
+    }
+  }, [editApplication]);
 
   const handleSearchCustomer = async () => {
     if (!custId.trim()) {
@@ -93,12 +127,13 @@ export default function ApplicationForm({
         }));
         setStep(3);
 
-        if (user) {
+        if (user && !editApplication) {
           const newApp = await createApplication({
             customerId: customer.id,
             pincode: customer.pincode,
             loanType: loanType as LoanType,
             userId: user.id,
+            leadId: leadId,
           });
           setApplicationId(newApp.id);
         }
@@ -121,6 +156,10 @@ export default function ApplicationForm({
         toast.error("Please select if the customer is ETC or NTC");
         return;
       }
+      if (!leadId.trim()) {
+        toast.error("Please enter a Lead ID");
+        return;
+      }
       setStep(2);
       if (customerType === "NTC") {
         setShowKYCForm(true);
@@ -137,13 +176,14 @@ export default function ApplicationForm({
       fullName: customer.name,
     }));
 
-    if (user) {
+    if (user && !editApplication) {
       try {
         const newApp = await createApplication({
           customerId: customer.id,
           pincode: customer.pincode,
           loanType: loanType as LoanType,
           userId: user.id,
+          leadId: leadId,
         });
         setApplicationId(newApp.id);
         toast.success("KYC details saved. Please fill the loan application form.");
@@ -154,23 +194,22 @@ export default function ApplicationForm({
     }
   };
 
- const handleFormChange = (
-  e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-) => {
-  const target = e.target;
-  const { name, value, type } = target;
+  const handleFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const target = e.target;
+    const { name, value, type } = target;
 
-  setFormData((prev) => ({
-    ...prev,
-    [name]:
-      type === "checkbox" && target instanceof HTMLInputElement
-        ? target.checked
-        : type === "number"
-        ? Number(value)
-        : value,
-  }));
-};
-
+    setFormData((prev) => ({
+      ...prev,
+      [name]:
+        type === "checkbox" && target instanceof HTMLInputElement
+          ? target.checked
+          : type === "number"
+          ? Number(value)
+          : value,
+    }));
+  };
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof LoanFormData, string>> = {};
@@ -257,21 +296,61 @@ export default function ApplicationForm({
     }
   };
 
+  const resetForm = () => {
+    setStep(1);
+    setLoanType("");
+    setCustomerType("");
+    setCustId("");
+    setLeadId("");
+    setExistingCustomer(null);
+    setShowKYCForm(false);
+    setApplicationId("");
+    setFormData({
+      fullName: "",
+      loanAmount: 0,
+      loanPurpose: "",
+      employmentStatus: "",
+      monthlyIncome: 0,
+      existingLoans: false,
+      leadSource: "",
+    });
+    setErrors({});
+  };
+
+  const handleClose = () => {
+    if (!editApplication) {
+      resetForm();
+    }
+    onClose();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>New Loan Application</DialogTitle>
+          <DialogTitle>
+            {editApplication ? "Edit Application" : "New Loan Application"}
+          </DialogTitle>
           <DialogDescription>
-            {step === 1 && "Select loan type and customer type"}
+            {step === 1 && "Select loan type, customer type, and enter lead ID"}
             {step === 2 && customerType === "ETC" && "Enter existing customer information"}
             {step === 2 && customerType === "NTC" && "Enter new customer information"}
             {step === 3 && "Fill the loan application form"}
           </DialogDescription>
         </DialogHeader>
 
-        {step === 1 && (
+        {step === 1 && !editApplication && (
           <div className="grid gap-6 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="leadId">Lead ID</Label>
+              <Input
+                id="leadId"
+                placeholder="Enter Lead ID (e.g., LEAD-123456)"
+                value={leadId}
+                onChange={(e) => setLeadId(e.target.value)}
+              />
+            </div>
+
             <div className="grid gap-2">
               <Label htmlFor="loanType">Loan Type</Label>
               <Select
@@ -305,7 +384,7 @@ export default function ApplicationForm({
             </div>
 
             <DialogFooter>
-              <Button variant="outline" onClick={onClose}>Cancel</Button>
+              <Button variant="outline" onClick={handleClose}>Cancel</Button>
               <Button onClick={handleNext}>Next</Button>
             </DialogFooter>
           </div>
@@ -355,7 +434,7 @@ export default function ApplicationForm({
                   placeholder="Full name"
                   value={formData.fullName}
                   onChange={handleFormChange}
-                  disabled={existingCustomer !== null}
+                  disabled={existingCustomer !== null && !editApplication}
                   className={errors.fullName ? "border-destructive" : ""}
                 />
                 {errors.fullName && <p className="text-xs text-destructive">{errors.fullName}</p>}
@@ -467,9 +546,16 @@ export default function ApplicationForm({
             </div>
 
             <DialogFooter className="flex justify-between">
-              <Button variant="outline" onClick={() => setStep(1)}>
-                Back
-              </Button>
+              {!editApplication && (
+                <Button variant="outline" onClick={() => setStep(1)}>
+                  Back
+                </Button>
+              )}
+              {editApplication && (
+                <Button variant="outline" onClick={handleClose}>
+                  Cancel
+                </Button>
+              )}
               <div className="flex gap-2">
                 <Button variant="outline" onClick={handleSave}>
                   Save Draft

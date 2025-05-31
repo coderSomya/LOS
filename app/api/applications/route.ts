@@ -3,17 +3,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ActionType, AppStatus } from "@/types";
 
-// Generate a lead ID with format LEAD-XXXXXX
-const generateLeadId = () => {
-  const random = Math.floor(100000 + Math.random() * 900000);
-  return `LEAD-${random}`;
-};
-
 export async function POST(request: NextRequest) {
   try {
-    const { customerId, pincode, loanType, userId } = await request.json();
+    const { customerId, pincode, loanType, userId, leadId } = await request.json();
     
-    const leadId = generateLeadId();
+    if (!leadId) {
+      return NextResponse.json(
+        { error: "Lead ID is required" },
+        { status: 400 }
+      );
+    }
     
     const application = await prisma.application.create({
       data: {

@@ -1,24 +1,28 @@
+
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 // Generate a customer ID with format CUST-XXXXXX
-const generateCustId = () => {
+const generateCustomerId = () => {
   const random = Math.floor(100000 + Math.random() * 900000);
   return `CUST-${random}`;
 };
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, phone, pincode } = await request.json();
-
-    const custId = generateCustId();
-
+    const { name, phone, pincode, aadharNumber, panNumber } = await request.json();
+    
+    const custId = generateCustomerId();
+    
     const customer = await prisma.customer.create({
       data: {
         custId,
         name,
         phone,
         pincode,
+        aadharNumber,
+        panNumber,
+        kycVerified: false,
       },
     });
 
@@ -41,9 +45,6 @@ export async function GET(request: NextRequest) {
 
     const customers = await prisma.customer.findMany({
       where,
-      include: {
-        applications: true,
-      },
       orderBy: {
         createdAt: "desc",
       },
