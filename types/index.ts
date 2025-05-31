@@ -75,6 +75,23 @@ export type ActivityLog = {
   performedAt: string;
 };
 
+export type KycFormData = {
+  name: string;
+  phone: string;
+  pincode: string;
+  aadharNumber?: string;
+  panNumber?: string;
+};
+
+export type LoanFormData = {
+  loanAmount: number;
+  tenure: number;
+  purpose: string;
+  monthlyIncome: number;
+  employment: string;
+  [key: string]: any;
+};
+
 export type LoanFormData = {
   fullName: string;
   loanAmount: number;
