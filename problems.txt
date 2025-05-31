@@ -1,0 +1,112 @@
+app/api/customers/route.ts(2,10): error TS2300: Duplicate identifier 'NextRequest'.
+app/api/customers/route.ts(2,23): error TS2300: Duplicate identifier 'NextResponse'.
+app/api/customers/route.ts(3,10): error TS2300: Duplicate identifier 'prisma'.
+app/api/customers/route.ts(11,23): error TS2323: Cannot redeclare exported variable 'POST'.
+app/api/customers/route.ts(11,23): error TS2393: Duplicate function implementation.
+app/api/customers/route.ts(38,23): error TS2323: Cannot redeclare exported variable 'GET'.
+app/api/customers/route.ts(38,23): error TS2393: Duplicate function implementation.
+app/api/customers/route.ts(68,10): error TS2300: Duplicate identifier 'NextRequest'.
+app/api/customers/route.ts(68,23): error TS2300: Duplicate identifier 'NextResponse'.
+app/api/customers/route.ts(69,10): error TS2300: Duplicate identifier 'prisma'.
+app/api/customers/route.ts(77,23): error TS2323: Cannot redeclare exported variable 'POST'.
+app/api/customers/route.ts(77,23): error TS2393: Duplicate function implementation.
+app/api/customers/route.ts(105,23): error TS2323: Cannot redeclare exported variable 'GET'.
+app/api/customers/route.ts(105,23): error TS2393: Duplicate function implementation.
+app/applications/[id]/page.tsx(51,20): error TS2345: Argument of type 'Promise<Application | null>' is not assignable to parameter of type 'SetStateAction<null>'.
+  Type 'Promise<Application | null>' provides no match for the signature '(prevState: null): null'.
+app/applications/[id]/page.tsx(54,19): error TS2345: Argument of type 'Promise<ActivityLog[]>' is not assignable to parameter of type 'SetStateAction<never[]>'.
+app/applications/[id]/page.tsx(94,31): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(97,19): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(102,9): error TS2801: This condition will always return true since this 'Promise<boolean>' is always defined.
+app/applications/[id]/page.tsx(107,22): error TS2345: Argument of type 'Promise<Application | null>' is not assignable to parameter of type 'SetStateAction<null>'.
+  Type 'Promise<Application | null>' provides no match for the signature '(prevState: null): null'.
+app/applications/[id]/page.tsx(111,21): error TS2345: Argument of type 'Promise<ActivityLog[]>' is not assignable to parameter of type 'SetStateAction<never[]>'.
+app/applications/[id]/page.tsx(125,9): error TS2801: This condition will always return true since this 'Promise<import("/home/runner/workspace/types/index").Application | null>' is always defined.
+app/applications/[id]/page.tsx(131,22): error TS2345: Argument of type 'Promise<Application | null>' is not assignable to parameter of type 'SetStateAction<null>'.
+  Type 'Promise<Application | null>' provides no match for the signature '(prevState: null): null'.
+app/applications/[id]/page.tsx(135,21): error TS2345: Argument of type 'Promise<ActivityLog[]>' is not assignable to parameter of type 'SetStateAction<never[]>'.
+app/applications/[id]/page.tsx(149,9): error TS2801: This condition will always return true since this 'Promise<import("/home/runner/workspace/types/index").Application | null>' is always defined.
+app/applications/[id]/page.tsx(155,22): error TS2345: Argument of type 'Promise<Application | null>' is not assignable to parameter of type 'SetStateAction<null>'.
+  Type 'Promise<Application | null>' provides no match for the signature '(prevState: null): null'.
+app/applications/[id]/page.tsx(159,21): error TS2345: Argument of type 'Promise<ActivityLog[]>' is not assignable to parameter of type 'SetStateAction<never[]>'.
+app/applications/[id]/page.tsx(209,76): error TS2339: Property 'status' does not exist on type 'never'.
+app/applications/[id]/page.tsx(210,41): error TS2339: Property 'status' does not exist on type 'never'.
+app/applications/[id]/page.tsx(214,35): error TS2339: Property 'leadId' does not exist on type 'never'.
+app/applications/[id]/page.tsx(215,26): error TS2339: Property 'appId' does not exist on type 'never'.
+app/applications/[id]/page.tsx(215,66): error TS2339: Property 'appId' does not exist on type 'never'.
+app/applications/[id]/page.tsx(215,88): error TS2339: Property 'tempAppId' does not exist on type 'never'.
+app/applications/[id]/page.tsx(215,125): error TS2339: Property 'tempAppId' does not exist on type 'never'.
+app/applications/[id]/page.tsx(238,49): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(245,65): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(249,65): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(253,65): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(258,75): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(262,42): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(268,54): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(278,65): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(282,65): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(292,62): error TS2339: Property 'loanType' does not exist on type 'never'.
+app/applications/[id]/page.tsx(296,34): error TS2339: Property 'formData' does not exist on type 'never'.
+app/applications/[id]/page.tsx(300,68): error TS2339: Property 'formData' does not exist on type 'never'.
+app/applications/[id]/page.tsx(304,68): error TS2339: Property 'formData' does not exist on type 'never'.
+app/applications/[id]/page.tsx(308,67): error TS2339: Property 'formData' does not exist on type 'never'.
+app/applications/[id]/page.tsx(312,67): error TS2339: Property 'formData' does not exist on type 'never'.
+app/applications/[id]/page.tsx(316,67): error TS2339: Property 'formData' does not exist on type 'never'.
+app/applications/[id]/page.tsx(320,67): error TS2339: Property 'formData' does not exist on type 'never'.
+app/applications/[id]/page.tsx(328,32): error TS2339: Property 'status' does not exist on type 'never'.
+app/applications/[id]/page.tsx(358,44): error TS2339: Property 'id' does not exist on type 'never'.
+app/applications/[id]/page.tsx(359,125): error TS2339: Property 'actionType' does not exist on type 'never'.
+app/applications/[id]/page.tsx(360,39): error TS2339: Property 'actionType' does not exist on type 'never'.
+app/applications/[id]/page.tsx(364,87): error TS2339: Property 'actionType' does not exist on type 'never'.
+app/applications/[id]/page.tsx(366,67): error TS2339: Property 'performedAt' does not exist on type 'never'.
+app/applications/[id]/page.tsx(369,84): error TS2339: Property 'comment' does not exist on type 'never'.
+app/applications/[id]/page.tsx(390,72): error TS2339: Property 'status' does not exist on type 'never'.
+app/applications/[id]/page.tsx(394,74): error TS2339: Property 'loanType' does not exist on type 'never'.
+app/applications/[id]/page.tsx(398,59): error TS2339: Property 'customer' does not exist on type 'never'.
+app/applications/[id]/page.tsx(402,68): error TS2339: Property 'createdAt' does not exist on type 'never'.
+app/applications/[id]/page.tsx(406,68): error TS2339: Property 'updatedAt' does not exist on type 'never'.
+app/customers/page.tsx(19,11): error TS2339: Property 'customers' does not exist on type 'DataState'.
+app/customers/page.tsx(27,10): error TS7006: Parameter 'cust' implicitly has an 'any' type.
+app/customers/page.tsx(37,8): error TS7006: Parameter 'cust' implicitly has an 'any' type.
+app/customers/page.tsx(47,8): error TS7006: Parameter 'cust' implicitly has an 'any' type.
+app/dashboard/page.tsx(19,29): error TS2307: Cannot find module '../types' or its corresponding type declarations.
+app/dashboard/page.tsx(32,21): error TS2345: Argument of type 'Promise<Application[]>' is not assignable to parameter of type 'SetStateAction<never[]>'.
+app/dashboard/page.tsx(55,43): error TS2339: Property 'status' does not exist on type 'never'.
+app/dashboard/page.tsx(158,62): error TS2339: Property 'status' does not exist on type 'never'.
+app/dashboard/page.tsx(166,62): error TS2339: Property 'status' does not exist on type 'never'.
+app/dashboard/page.tsx(174,62): error TS2339: Property 'status' does not exist on type 'never'.
+app/dashboard/page.tsx(193,31): error TS2345: Argument of type 'Promise<Application[]>' is not assignable to parameter of type 'SetStateAction<never[]>'.
+app/dashboard/page.tsx(246,26): error TS2820: Type '"outline\\"' is not assignable to type '"secondary" | "destructive" | "default" | "outline" | null | undefined'. Did you mean '"outline"'?
+components/application/application-form.tsx(94,27): error TS2345: Argument of type 'Promise<Customer | null>' is not assignable to parameter of type 'SetStateAction<null>'.
+  Type 'Promise<Customer | null>' provides no match for the signature '(prevState: null): null'.
+components/application/application-form.tsx(97,28): error TS2339: Property 'name' does not exist on type 'Promise<Customer | null>'.
+components/application/application-form.tsx(124,34): error TS7006: Parameter 'customer' implicitly has an 'any' type.
+components/application/application-form.tsx(142,31): error TS2339: Property 'id' does not exist on type 'Promise<Application>'.
+components/application/application-form.tsx(147,29): error TS7006: Parameter 'e' implicitly has an 'any' type.
+components/application/application-form.tsx(160,17): error TS2339: Property 'fullName' does not exist on type '{}'.
+components/application/application-form.tsx(165,17): error TS2339: Property 'loanAmount' does not exist on type '{}'.
+components/application/application-form.tsx(170,17): error TS2339: Property 'loanPurpose' does not exist on type '{}'.
+components/application/application-form.tsx(175,17): error TS2339: Property 'employmentStatus' does not exist on type '{}'.
+components/application/application-form.tsx(180,17): error TS2339: Property 'monthlyIncome' does not exist on type '{}'.
+components/application/application-form.tsx(185,17): error TS2339: Property 'leadSource' does not exist on type '{}'.
+components/application/application-form.tsx(206,11): error TS2801: This condition will always return true since this 'Promise<import("/home/runner/workspace/types/index").Application | null>' is always defined.
+components/application/application-form.tsx(228,11): error TS2801: This condition will always return true since this 'Promise<import("/home/runner/workspace/types/index").Application | null>' is always defined.
+components/application/application-form.tsx(338,37): error TS2339: Property 'fullName' does not exist on type '{}'.
+components/application/application-form.tsx(340,25): error TS2339: Property 'fullName' does not exist on type '{}'.
+components/application/application-form.tsx(340,85): error TS2339: Property 'fullName' does not exist on type '{}'.
+components/application/application-form.tsx(351,37): error TS2339: Property 'loanAmount' does not exist on type '{}'.
+components/application/application-form.tsx(353,25): error TS2339: Property 'loanAmount' does not exist on type '{}'.
+components/application/application-form.tsx(353,87): error TS2339: Property 'loanAmount' does not exist on type '{}'.
+components/application/application-form.tsx(373,25): error TS2339: Property 'employmentStatus' does not exist on type '{}'.
+components/application/application-form.tsx(373,93): error TS2339: Property 'employmentStatus' does not exist on type '{}'.
+components/application/application-form.tsx(384,37): error TS2339: Property 'monthlyIncome' does not exist on type '{}'.
+components/application/application-form.tsx(386,25): error TS2339: Property 'monthlyIncome' does not exist on type '{}'.
+components/application/application-form.tsx(386,90): error TS2339: Property 'monthlyIncome' does not exist on type '{}'.
+components/application/application-form.tsx(422,25): error TS2339: Property 'leadSource' does not exist on type '{}'.
+components/application/application-form.tsx(422,87): error TS2339: Property 'leadSource' does not exist on type '{}'.
+components/application/application-form.tsx(435,35): error TS2339: Property 'loanPurpose' does not exist on type '{}'.
+components/application/application-form.tsx(437,23): error TS2339: Property 'loanPurpose' does not exist on type '{}'.
+components/application/application-form.tsx(437,86): error TS2339: Property 'loanPurpose' does not exist on type '{}'.
+components/application/kyc-form.tsx(36,25): error TS7006: Parameter 'e' implicitly has an 'any' type.
+components/ui/calendar.tsx(57,9): error TS2353: Object literal may only specify known properties, and 'IconLeft' does not exist in type 'Partial<CustomComponents>'.
+lib/data.ts(12,25): error TS2307: Cannot find module './use-auth' or its corresponding type declarations.
