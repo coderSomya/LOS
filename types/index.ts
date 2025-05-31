@@ -79,17 +79,8 @@ export type KycFormData = {
   name: string;
   phone: string;
   pincode: string;
-  aadharNumber?: string;
-  panNumber?: string;
-};
-
-export type LoanFormData = {
-  loanAmount: number;
-  tenure: number;
-  purpose: string;
-  monthlyIncome: number;
-  employment: string;
-  [key: string]: any;
+  aadharNumber: string;
+  panNumber: string;
 };
 
 export type LoanFormData = {
@@ -100,12 +91,4 @@ export type LoanFormData = {
   monthlyIncome: number;
   existingLoans: boolean;
   leadSource: string;
-};
-
-export type KycFormData = {
-  name: string;
-  phone: string;
-  pincode: string;
-  aadharNumber: string;
-  panNumber: string;
 };

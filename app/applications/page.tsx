@@ -29,10 +29,14 @@ export default function ApplicationsPage() {
 
   useEffect(() => {
     if (!user) return;
-    
-    const apps = getApplicationsByPincode(user.pincode);
-    setApplications(apps);
-    setFilteredApplications(apps);
+
+    const fetchData = async () => {
+      const apps = await getApplicationsByPincode(user.pincode);
+      setApplications(apps);
+      setFilteredApplications(apps);
+    };
+
+    fetchData();
   }, [user, getApplicationsByPincode]);
 
   useEffect(() => {
@@ -50,7 +54,7 @@ export default function ApplicationsPage() {
       app.customer?.phone.toLowerCase().includes(term) || 
       app.customer?.custId.toLowerCase().includes(term)
     );
-    
+
     setFilteredApplications(filtered);
   }, [searchTerm, applications]);
 
@@ -73,10 +77,10 @@ export default function ApplicationsPage() {
     return status.replace("_", " ");
   };
 
-  const handleRefreshData = () => {
+  const handleRefreshData = async () => {
     if (!user) return;
-    
-    const apps = getApplicationsByPincode(user.pincode);
+
+    const apps = await getApplicationsByPincode(user.pincode);
     setApplications(apps);
     setFilteredApplications(apps);
   };
@@ -89,7 +93,7 @@ export default function ApplicationsPage() {
           <Button onClick={() => setShowForm(true)}>New Application</Button>
         )}
       </div>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>All Applications</CardTitle>
@@ -106,7 +110,7 @@ export default function ApplicationsPage() {
               />
             </div>
           </div>
-          
+
           <div className="border rounded-md">
             <Table>
               <TableHeader>
@@ -139,7 +143,7 @@ export default function ApplicationsPage() {
                     <TableCell>{app.appId || app.tempAppId || 'N/A'}</TableCell>
                     <TableCell>
                       {app.customer?.kycVerified ? (
-                        <Badge variant="outline\" className="bg-green-100 text-green-800 border-green-200">
+                        <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
                           Verified
                         </Badge>
                       ) : (

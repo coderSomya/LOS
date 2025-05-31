@@ -16,7 +16,7 @@ interface KYCFormProps {
 export function KYCForm({ onCancel, onCustomerCreated }: KYCFormProps) {
   const { user } = useAuth();
   const { addCustomer, createApplication } = useDataStore();
-  
+
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -24,7 +24,7 @@ export function KYCForm({ onCancel, onCustomerCreated }: KYCFormProps) {
     aadharNumber: "",
     panNumber: ""
   });
-  
+
   const [errors, setErrors] = useState({
     name: "",
     phone: "",
@@ -32,23 +32,23 @@ export function KYCForm({ onCancel, onCustomerCreated }: KYCFormProps) {
     aadharNumber: "",
     panNumber: ""
   });
-  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
-    
+
     // Clear error when user types
-    if (errors[name]) {
+    if (errors[name as keyof typeof errors]) {
       setErrors(prev => ({
         ...prev,
         [name]: ""
       }));
     }
   };
-  
+
   const validateForm = () => {
     const newErrors = {
       name: "",
@@ -57,14 +57,14 @@ export function KYCForm({ onCancel, onCustomerCreated }: KYCFormProps) {
       aadharNumber: "",
       panNumber: ""
     };
-    
+
     let isValid = true;
-    
+
     if (!formData.name.trim()) {
       newErrors.name = "Name is required";
       isValid = false;
     }
-    
+
     if (!formData.phone.trim()) {
       newErrors.phone = "Phone number is required";
       isValid = false;
@@ -72,7 +72,7 @@ export function KYCForm({ onCancel, onCustomerCreated }: KYCFormProps) {
       newErrors.phone = "Phone must be 10 digits";
       isValid = false;
     }
-    
+
     if (!formData.pincode.trim()) {
       newErrors.pincode = "Pincode is required";
       isValid = false;
@@ -80,7 +80,7 @@ export function KYCForm({ onCancel, onCustomerCreated }: KYCFormProps) {
       newErrors.pincode = "Pincode must be 6 digits";
       isValid = false;
     }
-    
+
     if (!formData.aadharNumber.trim()) {
       newErrors.aadharNumber = "Aadhar number is required";
       isValid = false;
@@ -88,7 +88,7 @@ export function KYCForm({ onCancel, onCustomerCreated }: KYCFormProps) {
       newErrors.aadharNumber = "Aadhar must be 12 digits";
       isValid = false;
     }
-    
+
     if (!formData.panNumber.trim()) {
       newErrors.panNumber = "PAN number is required";
       isValid = false;
@@ -96,21 +96,21 @@ export function KYCForm({ onCancel, onCustomerCreated }: KYCFormProps) {
       newErrors.panNumber = "Invalid PAN format (e.g., ABCDE1234F)";
       isValid = false;
     }
-    
+
     setErrors(newErrors);
     return isValid;
   };
-  
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     try {
-      const customer = addCustomer(formData);
-      
+      const customer = await addCustomer(formData);
+
       if (customer) {
         toast.success(`Customer created successfully. ID: ${customer.custId}`);
         onCustomerCreated(customer);
@@ -120,7 +120,7 @@ export function KYCForm({ onCancel, onCustomerCreated }: KYCFormProps) {
       console.error(error);
     }
   };
-  
+
   return (
     <form onSubmit={handleSubmit} className="grid gap-6 py-4">
       <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
@@ -136,7 +136,7 @@ export function KYCForm({ onCancel, onCustomerCreated }: KYCFormProps) {
           />
           {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
         </div>
-        
+
         <div className="grid gap-2">
           <Label htmlFor="phone">Phone Number</Label>
           <Input
@@ -149,7 +149,7 @@ export function KYCForm({ onCancel, onCustomerCreated }: KYCFormProps) {
           />
           {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
         </div>
-        
+
         <div className="grid gap-2">
           <Label htmlFor="pincode">Pincode</Label>
           <Input
@@ -162,7 +162,7 @@ export function KYCForm({ onCancel, onCustomerCreated }: KYCFormProps) {
           />
           {errors.pincode && <p className="text-xs text-destructive">{errors.pincode}</p>}
         </div>
-        
+
         <div className="grid gap-2">
           <Label htmlFor="aadharNumber">Aadhar Number</Label>
           <Input
@@ -175,7 +175,7 @@ export function KYCForm({ onCancel, onCustomerCreated }: KYCFormProps) {
           />
           {errors.aadharNumber && <p className="text-xs text-destructive">{errors.aadharNumber}</p>}
         </div>
-        
+
         <div className="grid gap-2">
           <Label htmlFor="panNumber">PAN Number</Label>
           <Input
@@ -189,7 +189,7 @@ export function KYCForm({ onCancel, onCustomerCreated }: KYCFormProps) {
           {errors.panNumber && <p className="text-xs text-destructive">{errors.panNumber}</p>}
         </div>
       </div>
-      
+
       <div className="flex justify-between">
         <Button variant="outline" onClick={onCancel} type="button">
           Cancel

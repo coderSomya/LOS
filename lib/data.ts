@@ -9,6 +9,7 @@ import {
   LoanFormData,
   KycFormData
 } from "@/types";
+import { useAuth } from "./use-auth";
 
 interface DataState {
   // Customer methods
@@ -49,21 +50,23 @@ interface DataState {
   ) => Promise<Application | null>;
 }
 
-export const useDataStore = create<DataState>()(() => ({
+export const useDataStore = create<DataState>()((set, get) => ({
   // Customer methods
-  addCustomer: async (customerData: KycFormData) => {
-    const response = await fetch("/api/customers", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(customerData),
-    });
+  addCustomer: async (customerData) => {
+        const response = await fetch('/api/customers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(customerData),
+        });
 
-    if (!response.ok) {
-      throw new Error("Failed to create customer");
-    }
+        if (!response.ok) {
+          throw new Error('Failed to create customer');
+        }
 
-    return response.json();
-  },
+        const customer = await response.json();
+
+        return customer;
+      },
 
   getCustomerById: async (custId: string) => {
     const response = await fetch(`/api/customers?custId=${custId}`);
@@ -97,28 +100,31 @@ export const useDataStore = create<DataState>()(() => ({
 
   // Application methods
   createApplication: async (data) => {
-    const response = await fetch("/api/applications", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
+        const user = useAuth.getState().user;
+        const response = await fetch('/api/applications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...data, userId: user?.id }),
+        });
 
-    if (!response.ok) {
-      throw new Error("Failed to create application");
-    }
+        if (!response.ok) {
+          throw new Error('Failed to create application');
+        }
 
-    return response.json();
-  },
+        const application = await response.json();
 
-  getApplicationsByPincode: async (pincode: string) => {
-    const response = await fetch(`/api/applications?pincode=${pincode}`);
+        return application;
+      },
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch applications");
-    }
+  getApplicationsByPincode: async (pincode) => {
+        const response = await fetch(`/api/applications?pincode=${pincode}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch applications');
+        }
+        const applications = await response.json();
 
-    return response.json();
-  },
+        return applications;
+      },
 
   getApplicationById: async (id: string) => {
     const response = await fetch(`/api/applications/${id}`);

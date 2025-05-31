@@ -16,6 +16,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Plus, PieChart, TrendingUp, Users, FileCheck } from "lucide-react";
 import ApplicationForm from "@/components/application/application-form";
+import { Application } from "../types";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -26,7 +27,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!user) return;
-    
+
     const apps = getApplicationsByPincode(user.pincode);
     setApplications(apps);
   }, [user, getApplicationsByPincode]);
@@ -198,11 +199,16 @@ export default function DashboardPage() {
   );
 }
 
-function ApplicationsTable({ 
-  applications, 
-  getStatusColor, 
+function ApplicationsTable({
+  applications,
+  getStatusColor,
   formatStatus,
-  onViewApplication
+  onViewApplication,
+}: {
+  applications: Application[];
+  getStatusColor: (status: AppStatus) => string;
+  formatStatus: (status: AppStatus) => string;
+  onViewApplication: (id: string) => void;
 }) {
   return (
     <div className="border rounded-md">

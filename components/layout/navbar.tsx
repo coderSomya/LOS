@@ -23,7 +23,7 @@ export function Navbar() {
           {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost\" size="sm\" className="relative h-8 flex items-center gap-2">
+                <Button variant="ghost" size="sm" className="relative h-8 flex items-center gap-2">
                   <UserCircle className="h-5 w-5" />
                   <span className="hidden md:inline-block">{user.username}</span>
                 </Button>

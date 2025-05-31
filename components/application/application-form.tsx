@@ -32,6 +32,16 @@ import { CustomerType, LoanType } from "@/types";
 import { KYCForm } from "@/components/application/kyc-form";
 import { toast } from "sonner";
 
+interface LoanFormData {
+    fullName: string;
+    loanAmount: number;
+    loanPurpose: string;
+    employmentStatus: string;
+    monthlyIncome: number;
+    existingLoans: boolean;
+    leadSource: string;
+}
+
 export default function ApplicationForm({ 
   open, 
   onClose,
@@ -48,7 +58,7 @@ export default function ApplicationForm({
     saveApplicationForm,
     submitApplicationForm 
   } = useDataStore();
-  
+
   // Initial form state
   const [step, setStep] = useState(1);
   const [loanType, setLoanType] = useState<LoanType | "">("");
@@ -56,30 +66,30 @@ export default function ApplicationForm({
   const [custId, setCustId] = useState("");
   const [existingCustomer, setExistingCustomer] = useState(null);
   const [showKYCForm, setShowKYCForm] = useState(false);
-  
+
   // Form data state
   const [applicationId, setApplicationId] = useState("");
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<LoanFormData>({
     fullName: "",
-    loanAmount: "",
+    loanAmount: 0,
     loanPurpose: "",
     employmentStatus: "",
-    monthlyIncome: "",
-    existingLoans: "false",
+    monthlyIncome: 0,
+    existingLoans: false,
     leadSource: ""
   });
-  
+
   // Form validation
   const [errors, setErrors] = useState({});
-  
+
   const handleSearchCustomer = () => {
     if (!custId.trim()) {
       toast.error("Please enter a Customer ID");
       return;
     }
-    
+
     const customer = getCustomerById(custId);
-    
+
     if (customer) {
       setExistingCustomer(customer);
       setFormData(prev => ({
@@ -91,7 +101,7 @@ export default function ApplicationForm({
       toast.error("Customer not found. Please check the Customer ID.");
     }
   };
-  
+
   const handleNext = () => {
     if (step === 1) {
       if (!loanType) {
@@ -102,15 +112,15 @@ export default function ApplicationForm({
         toast.error("Please select if the customer is ETC or NTC");
         return;
       }
-      
+
       setStep(2);
-      
+
       if (customerType === CustomerType.NTC) {
         setShowKYCForm(true);
       }
     }
   };
-  
+
   const handleCustomerCreated = (customer) => {
     setExistingCustomer(customer);
     setShowKYCForm(false);
@@ -119,7 +129,7 @@ export default function ApplicationForm({
       ...prev,
       fullName: customer.name,
     }));
-    
+
     // Create new application
     if (user) {
       const newApp = createApplication({
@@ -128,77 +138,71 @@ export default function ApplicationForm({
         loanType: loanType as LoanType,
         userId: user.id
       });
-      
+
       setApplicationId(newApp.id);
       toast.success("KYC details saved. Please fill the loan application form.");
     }
   };
-  
+
   const handleFormChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === "checkbox" ? checked.toString() : value
+      [name]: type === "checkbox" ? checked : value
     }));
   };
-  
+
   const validateForm = () => {
     const newErrors = {};
     let isValid = true;
-    
+
     if (!formData.fullName.trim()) {
       newErrors.fullName = "Full name is required";
       isValid = false;
     }
-    
-    if (!formData.loanAmount.trim()) {
-      newErrors.loanAmount = "Loan amount is required";
-      isValid = false;
-    } else if (isNaN(Number(formData.loanAmount)) || Number(formData.loanAmount) <= 0) {
+
+    if (formData.loanAmount <= 0) {
       newErrors.loanAmount = "Loan amount must be a positive number";
       isValid = false;
     }
-    
+
     if (!formData.loanPurpose.trim()) {
       newErrors.loanPurpose = "Loan purpose is required";
       isValid = false;
     }
-    
+
     if (!formData.employmentStatus.trim()) {
       newErrors.employmentStatus = "Employment status is required";
       isValid = false;
     }
-    
-    if (!formData.monthlyIncome.trim()) {
-      newErrors.monthlyIncome = "Monthly income is required";
-      isValid = false;
-    } else if (isNaN(Number(formData.monthlyIncome)) || Number(formData.monthlyIncome) <= 0) {
+
+    if (formData.monthlyIncome <= 0) {
       newErrors.monthlyIncome = "Monthly income must be a positive number";
       isValid = false;
     }
-    
+
     if (!formData.leadSource.trim()) {
       newErrors.leadSource = "Lead source is required";
       isValid = false;
     }
-    
+
     setErrors(newErrors);
     return isValid;
   };
-  
+
   const handleSave = () => {
     if (!validateForm()) return;
-    
+
     if (user && applicationId) {
       const processedData = {
         ...formData,
         loanAmount: Number(formData.loanAmount),
         monthlyIncome: Number(formData.monthlyIncome),
-        existingLoans: formData.existingLoans === "true"
+        existingLoans: formData.existingLoans === true
       };
-      
+
       const result = saveApplicationForm(applicationId, processedData, user.id);
-      
+
       if (result) {
         toast.success("Application saved successfully");
         onSuccess();
@@ -207,20 +211,20 @@ export default function ApplicationForm({
       }
     }
   };
-  
+
   const handleSubmit = () => {
     if (!validateForm()) return;
-    
+
     if (user && applicationId) {
       const processedData = {
         ...formData,
         loanAmount: Number(formData.loanAmount),
         monthlyIncome: Number(formData.monthlyIncome),
-        existingLoans: formData.existingLoans === "true"
+        existingLoans: formData.existingLoans === true
       };
-      
+
       const result = submitApplicationForm(applicationId, processedData, user.id);
-      
+
       if (result) {
         toast.success("Application submitted successfully");
         onSuccess();
@@ -229,7 +233,7 @@ export default function ApplicationForm({
       }
     }
   };
-  
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
@@ -242,7 +246,7 @@ export default function ApplicationForm({
             {step === 3 && "Fill the loan application form"}
           </DialogDescription>
         </DialogHeader>
-        
+
         {step === 1 && (
           <div className="grid gap-6 py-4">
             <div className="grid gap-2">
@@ -262,7 +266,7 @@ export default function ApplicationForm({
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="customerType">Customer Type</Label>
               <Tabs 
@@ -280,14 +284,14 @@ export default function ApplicationForm({
                 </TabsList>
               </Tabs>
             </div>
-            
+
             <DialogFooter>
               <Button variant="outline" onClick={onClose}>Cancel</Button>
               <Button onClick={handleNext}>Next</Button>
             </DialogFooter>
           </div>
         )}
-        
+
         {step === 2 && customerType === CustomerType.ETC && (
           <div className="grid gap-6 py-4">
             <div className="grid gap-2">
@@ -305,20 +309,20 @@ export default function ApplicationForm({
                 Enter the Customer ID to retrieve existing customer information
               </p>
             </div>
-            
+
             <DialogFooter>
               <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
             </DialogFooter>
           </div>
         )}
-        
+
         {showKYCForm && (
           <KYCForm 
             onCancel={() => setStep(1)}
             onCustomerCreated={handleCustomerCreated}
           />
         )}
-        
+
         {step === 3 && (
           <div className="grid gap-6 py-4">
             <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
@@ -335,7 +339,7 @@ export default function ApplicationForm({
                 />
                 {errors.fullName && <p className="text-xs text-destructive">{errors.fullName}</p>}
               </div>
-              
+
               <div className="grid gap-2">
                 <Label htmlFor="loanAmount">Loan Amount</Label>
                 <Input
@@ -348,7 +352,7 @@ export default function ApplicationForm({
                 />
                 {errors.loanAmount && <p className="text-xs text-destructive">{errors.loanAmount}</p>}
               </div>
-              
+
               <div className="grid gap-2">
                 <Label htmlFor="employmentStatus">Employment Status</Label>
                 <Select 
@@ -368,7 +372,7 @@ export default function ApplicationForm({
                 </Select>
                 {errors.employmentStatus && <p className="text-xs text-destructive">{errors.employmentStatus}</p>}
               </div>
-              
+
               <div className="grid gap-2">
                 <Label htmlFor="monthlyIncome">Monthly Income</Label>
                 <Input
@@ -381,12 +385,12 @@ export default function ApplicationForm({
                 />
                 {errors.monthlyIncome && <p className="text-xs text-destructive">{errors.monthlyIncome}</p>}
               </div>
-              
+
               <div className="grid gap-2">
                 <Label htmlFor="existingLoans">Existing Loans</Label>
                 <Select 
-                  value={formData.existingLoans} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, existingLoans: value }))}
+                  value={String(formData.existingLoans)} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, existingLoans: value === 'true' }))}
                 >
                   <SelectTrigger id="existingLoans">
                     <SelectValue placeholder="Do you have existing loans?" />
@@ -397,7 +401,7 @@ export default function ApplicationForm({
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="grid gap-2">
                 <Label htmlFor="leadSource">Lead Source</Label>
                 <Select 
@@ -418,7 +422,7 @@ export default function ApplicationForm({
                 {errors.leadSource && <p className="text-xs text-destructive">{errors.leadSource}</p>}
               </div>
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="loanPurpose">Loan Purpose</Label>
               <Textarea
@@ -432,7 +436,7 @@ export default function ApplicationForm({
               />
               {errors.loanPurpose && <p className="text-xs text-destructive">{errors.loanPurpose}</p>}
             </div>
-            
+
             <DialogFooter className="flex justify-between">
               <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
               <div className="flex gap-2">
