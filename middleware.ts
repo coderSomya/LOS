@@ -24,8 +24,17 @@ export function middleware(request: NextRequest) {
 
   try {
     const data = JSON.parse(cookie.value);
-    const isAuthenticated =
-      data?.state?.isAuthenticated || data?.isAuthenticated;
+    
+    // Handle Zustand persist format - check both possible structures
+    let isAuthenticated = false;
+    
+    if (data.state && typeof data.state === 'object') {
+      // Zustand persist format: { state: { isAuthenticated: true, user: {...} }, version: 0 }
+      isAuthenticated = data.state.isAuthenticated === true;
+    } else {
+      // Direct format: { isAuthenticated: true, user: {...} }
+      isAuthenticated = data.isAuthenticated === true;
+    }
 
     if (!isAuthenticated) {
       console.log("❌ Not authenticated in cookie");

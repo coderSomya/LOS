@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     const { password: _, ...userWithoutPassword } = user;
     
-    // Create the auth state that matches your Zustand structure
+    // Create the auth state that exactly matches Zustand persist structure
     const authState = {
       state: {
         user: userWithoutPassword,
