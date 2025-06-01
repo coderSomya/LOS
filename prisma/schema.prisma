@@ -14,50 +14,198 @@ model User {
   id            String    @id @default(cuid())
   username      String    @unique
   password      String
+  name          String?
+  email         String?
   userType      UserType
   pincode       String
   createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  updatedAt     DateTime  @default(now())
+  activities        ActivityLog[]
 }
 
 model Customer {
   id            String    @id @default(cuid())
   custId        String    @unique
   name          String
-  phone         String    @unique  // Added @unique constraint
+  phone         String    @unique
   pincode       String
-  aadharNumber  String?   @unique  // Added @unique constraint since Aadhar should be unique
-  panNumber     String?   @unique  // Added @unique constraint since PAN should be unique
+  aadharNumber  String?   @unique
+  panNumber     String?   @unique
   kycVerified   Boolean   @default(false)
   createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  updatedAt     DateTime  @default(now())
   applications  Application[]
 }
 
-model Application {
-  id            String    @id @default(cuid())
-  leadId        String    @unique
-  customer      Customer  @relation(fields: [customerId], references: [id])
-  customerId    String
-  tempAppId     String?   @unique
-  appId         String?   @unique
-  pincode       String
-  loanType      LoanType
-  status        AppStatus @default(DRAFT)
-  formData      Json?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  activities    ActivityLog[]
+model Application {`
+  id                String           @id @default(cuid())
+  leadId            String           @unique
+  customer          Customer         @relation(fields: [customerId], references: [id])
+  customerId        String
+  tempAppId         String?          @unique
+  appId             String?          @unique
+  pincode           String
+  loanType          LoanType
+  status            AppStatus        @default(DRAFT)
+  formData          Json?            // Keep this for backward compatibility or other loan types
+  submittedAt       DateTime?
+  submittedBy       String?
+  lastUpdated       DateTime?        @default(now())
+  lastUpdatedBy     String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @default(now())
+  
+  // Relations to form data tables
+  accountDetails    AccountDetails?
+  goldLoanDetails   GoldLoanDetails?
+  personalDetails   PersonalDetails?
+  activities        ActivityLog[]
+
+  @@index([customerId])
+  @@index([pincode])
+  @@index([status])
+  @@index([loanType])
+}
+
+model AccountDetails {
+  id                           String      @id @default(cuid())
+  applicationId                String      @unique
+  accountNo                    String?
+  accountType                  String?
+  accountHolderName            String?
+  companyName                  String?
+  branchName                   String?
+  ifscCode                     String?
+  siNachStartDate              DateTime?
+  takeoverCompanyName          String?
+  numberOfTranches             Int?
+  sellerBuilderName            String?
+  sellerBuilderAccountNo       String?
+  sellerBuilderCompanyName     String?
+  sellerBuilderBranchName      String?
+  sellerBuilderIfscCode        String?
+  existingLoanAccountNo        String?
+  existingLoanCompanyName      String?
+  existingLoanSanctionedAmount Int?
+  existingLoanOutstanding      Int?
+  existingLoanEMI              Int?
+  createdAt                    DateTime    @default(now())
+  updatedAt                    DateTime    @default(now())
+
+  application                  Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}
+
+model GoldLoanDetails {
+  id                    String      @id @default(cuid())
+  applicationId         String      @unique
+  typeOfApplicant       String?
+  loanAmount            Float?
+  tenor                 Int?
+  purposeOfLoan         String?
+  chainPieces           Int?
+  banglesPieces         Int?
+  ringsPieces           Int?
+  earringsPieces        Int?
+  othersOrnamentsPieces Int?
+  totalOrnaments        Int?
+  ornamentValue         Float?
+  insuranceOptIn        String?
+  insuranceScheme       String?
+  premiumAmount         Float?
+  sumAssured            Float?
+  nominee               String?
+  nomineeRelationship   String?
+  referralFee           Float?
+  declarationDate       DateTime?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @default(now())
+
+  application           Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}
+
+model PersonalDetails {
+  id                        String       @id @default(cuid())
+  applicationId             String       @unique
+  firstName                 String?
+  middleName                String?
+  lastName                  String?
+  aadhar                    String?
+  voterId                   String?
+  mobile                    String?
+  email                     String?
+  spouseName                String?
+  fatherName                String?
+  gender                    String?
+  maritalStatus             String?
+  religion                  String?
+  education                 String?
+  pan                       String?
+  residentialStatus         String?
+  visaNo                    String?
+  visaIssueDate             DateTime?
+  currentAddress            String?
+  currentLandmark           String?
+  currentCity               String?
+  currentDistrict           String?
+  currentState              String?
+  currentPincode            String?
+  currentCountry            String?
+  currentResidingInMonths   Int?
+  currentResidentialType    String?
+  sameAsPermanent           String?
+  permanentAddress          String?
+  permanentLandmark         String?
+  permanentCity             String?
+  permanentDistrict         String?
+  permanentState            String?
+  permanentPincode          String?
+  permanentCountry          String?
+  permanentResidingInMonths Int?
+  permanentResidentialType  String?
+  applicantRole             String?
+  occupationType            String?
+  employerName              String?
+  employerAddress           String?
+  employerPin               String?
+  createdAt                 DateTime     @default(now())
+  updatedAt                 DateTime     @default(now())
+
+  application               Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  references                Reference[]
+}
+
+model Reference { 
+  id                String          @id @default(cuid())
+  personalDetailsId String
+  name              String?
+  address           String?
+  mobile            String?
+  email             String?
+  relationship      String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @default(now())
+
+  personalDetails   PersonalDetails @relation(fields: [personalDetailsId], references: [id], onDelete: Cascade)
+
+  @@index([personalDetailsId])
 }
 
 model ActivityLog {
-  id            String    @id @default(cuid())
-  application   Application @relation(fields: [applicationId], references: [id])
+  id            String      @id @default(cuid())
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   applicationId String
+  user          User?       @relation(fields: [userId], references: [id])
+  userId        String?
   actionType    ActionType
-  comment       String
-  performedBy   String
-  performedAt   DateTime  @default(now())
+  action        String?     // Additional description
+  comment       String?
+  details       Json?       // For storing additional metadata
+  performedBy   String      // Username or name
+  performedAt   DateTime    @default(now())
+
+  @@index([applicationId])
+  @@index([actionType])
+  @@index([performedAt])
 }
 
 enum UserType {
@@ -86,4 +234,6 @@ enum ActionType {
   APPROVED
   REJECTED
   KYC_VERIFIED
+  FORM_UPDATED
+  STATUS_CHANGED
 }

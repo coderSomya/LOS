@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { Navbar } from "./navbar";
@@ -15,20 +15,19 @@ export function MainLayout({ children }: MainLayoutProps) {
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
 
-  // Handle authentication check on client side
   useEffect(() => {
     setIsMounted(true);
-    
+
+    // Let middleware do the redirection if not authenticated
     if (!isAuthenticated) {
       router.push("/signin");
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated]);
 
-  // Don't render until client-side authentication is checked
-  if (!isMounted || !isAuthenticated) {
+  if (!isMounted) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full"></div>
+        <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -38,7 +37,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       <Sidebar />
       <div className="flex flex-col flex-1">
         <Navbar />
-        <main className="flex-1 p-6 md:p-8">{children}</main>
+        <main className="flex-1 p-6">{children}</main>
       </div>
     </div>
   );

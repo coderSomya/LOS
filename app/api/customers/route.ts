@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
           },
         },
       });
-
+console.log("API: Customer found:", customer);
       if (!customer) {
         return NextResponse.json(
           { error: "Customer not found" },

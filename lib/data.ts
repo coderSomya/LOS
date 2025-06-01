@@ -76,22 +76,29 @@ export const useDataStore = create<DataState>()((set, get) => ({
   },
 
   getCustomerById: async (custId: string): Promise<Customer | null> => {
-    try {
-      const response = await fetch(`/api/customers?custId=${encodeURIComponent(custId)}`);
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          return null;
-        }
-        throw new Error('Failed to fetch customer');
+  try {
+    console.log("Fetching customer with ID:", custId);
+    const response = await fetch(`/api/customers?custId=${encodeURIComponent(custId)}`);
+    
+    console.log("Response status:", response.status);
+    console.log("Response ok:", response.ok);
+    
+    if (!response.ok) {
+      if (response.status === 404) {
+        console.log("Customer not found (404)");
+        return null;
       }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching customer by ID:', error);
-      return null;
+      throw new Error('Failed to fetch customer');
     }
-  },
+
+    const data = await response.json();
+    console.log("Customer data received:", data);
+    return data;
+  } catch (error) {
+    console.error('Error fetching customer by ID:', error);
+    return null;
+  }
+},
 
   getCustomerByPhone: async (phone: string): Promise<Customer | null> => {
     try {

@@ -1,9 +1,9 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useDataStore } from "@/lib/data";
+import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -15,7 +15,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -28,19 +27,9 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { Customer, LoanType, Application, AppStatus } from "@/types";
+import { Customer, LoanType, Application } from "@/types";
 import { KYCForm } from "@/components/application/kyc-form";
 import { toast } from "sonner";
-
-interface LoanFormData {
-  fullName: string;
-  loanAmount: number;
-  loanPurpose: string;
-  employmentStatus: string;
-  monthlyIncome: number;
-  existingLoans: boolean;
-  leadSource: string;
-}
 
 type CustomerType = "ETC" | "NTC";
 
@@ -56,12 +45,8 @@ export default function ApplicationForm({
   editApplication?: Application | null;
 }) {
   const { user } = useAuth();
-  const {
-    createApplication,
-    getCustomerById,
-    saveApplicationForm,
-    submitApplicationForm,
-  } = useDataStore();
+  const router = useRouter();
+  const { getCustomerById } = useDataStore();
 
   const [step, setStep] = useState<number>(1);
   const [loanType, setLoanType] = useState<LoanType | "">("");
@@ -70,72 +55,30 @@ export default function ApplicationForm({
   const [leadId, setLeadId] = useState<string>("");
   const [existingCustomer, setExistingCustomer] = useState<Customer | null>(null);
   const [showKYCForm, setShowKYCForm] = useState<boolean>(false);
-  const [applicationId, setApplicationId] = useState<string>("");
-  const [formData, setFormData] = useState<LoanFormData>({
-    fullName: "",
-    loanAmount: 0,
-    loanPurpose: "",
-    employmentStatus: "",
-    monthlyIncome: 0,
-    existingLoans: false,
-    leadSource: "",
-  });
-  const [errors, setErrors] = useState<Partial<Record<keyof LoanFormData, string>>>({});
 
-  // Initialize form for editing existing application
+  // If editing an existing application, redirect immediately
   useEffect(() => {
     if (editApplication) {
-      setApplicationId(editApplication.id);
-      setLoanType(editApplication.loanType);
-      setLeadId(editApplication.leadId);
-      setExistingCustomer(editApplication.customer);
-      setCustomerType("ETC"); // Existing application means existing customer
-      
-      if (editApplication.formData) {
-        setFormData({
-          fullName: editApplication.formData.fullName || editApplication.customer.name,
-          loanAmount: editApplication.formData.loanAmount || 0,
-          loanPurpose: editApplication.formData.loanPurpose || "",
-          employmentStatus: editApplication.formData.employmentStatus || "",
-          monthlyIncome: editApplication.formData.monthlyIncome || 0,
-          existingLoans: editApplication.formData.existingLoans || false,
-          leadSource: editApplication.formData.leadSource || "",
-        });
-      } else {
-        setFormData(prev => ({
-          ...prev,
-          fullName: editApplication.customer.name,
-        }));
-      }
-      
-      setStep(3); // Go directly to form step
+      router.push(`/form/?leadId=${editApplication.leadId}&customerId=${editApplication.customerId}&edit=true`);
+      onClose();
     }
-  }, [editApplication]);
+  }, [editApplication, router, onClose]);
 
+  // Handle search for ETC (Existing Customer)
   const handleSearchCustomer = async () => {
     if (!custId.trim()) {
       toast.error("Please enter a Customer ID");
       return;
     }
+
     try {
       const customer = await getCustomerById(custId);
+
       if (customer) {
         setExistingCustomer(customer);
-        setFormData((prev) => ({
-          ...prev,
-          fullName: customer.name,
-        }));
-        setStep(3);
-
-        if (user && !editApplication) {
-          const newApp = await createApplication({
-            customerId: customer.id,
-            pincode: customer.pincode,
-            loanType: loanType as LoanType,
-            userId: user.id,
-            leadId: leadId,
-          });
-          setApplicationId(newApp.id);
+        if (user) {
+          onClose();
+          router.push(`/form/?leadId=${leadId}&customerId=${customer.id}`);
         }
       } else {
         toast.error("Customer not found. Please check the Customer ID.");
@@ -143,6 +86,23 @@ export default function ApplicationForm({
     } catch (error) {
       console.error("Error fetching customer:", error);
       toast.error("An error occurred while fetching customer data.");
+    }
+  };
+
+  // Handle customer creation after KYC (NTC)
+  const handleCustomerCreated = async (customer: Customer) => {
+    setExistingCustomer(customer);
+    setShowKYCForm(false);
+
+    if (user) {
+      try {
+        onClose();
+        toast.success("KYC completed successfully. Redirecting to application form...");
+        router.push(`/form/?leadId=${leadId}&customerId=${customer.id}&isNew=true`);
+      } catch (error) {
+        console.error("Error after KYC:", error);
+        toast.error("An error occurred after KYC.");
+      }
     }
   };
 
@@ -160,138 +120,14 @@ export default function ApplicationForm({
         toast.error("Please enter a Lead ID");
         return;
       }
-      setStep(2);
-      if (customerType === "NTC") {
-        setShowKYCForm(true);
-      }
-    }
-  };
 
-  const handleCustomerCreated = async (customer: Customer) => {
-    setExistingCustomer(customer);
-    setShowKYCForm(false);
-    setStep(3);
-    setFormData((prev) => ({
-      ...prev,
-      fullName: customer.name,
-    }));
-
-    if (user && !editApplication) {
-      try {
-        const newApp = await createApplication({
-          customerId: customer.id,
-          pincode: customer.pincode,
-          loanType: loanType as LoanType,
-          userId: user.id,
-          leadId: leadId,
-        });
-        setApplicationId(newApp.id);
-        toast.success("KYC details saved. Please fill the loan application form.");
-      } catch (error) {
-        console.error("Error creating application:", error);
-        toast.error("An error occurred while creating the application.");
-      }
-    }
-  };
-
-  const handleFormChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const target = e.target;
-    const { name, value, type } = target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]:
-        type === "checkbox" && target instanceof HTMLInputElement
-          ? target.checked
-          : type === "number"
-          ? Number(value)
-          : value,
-    }));
-  };
-
-  const validateForm = (): boolean => {
-    const newErrors: Partial<Record<keyof LoanFormData, string>> = {};
-    let isValid = true;
-
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = "Full name is required";
-      isValid = false;
-    }
-    if (formData.loanAmount <= 0) {
-      newErrors.loanAmount = "Loan amount must be a positive number";
-      isValid = false;
-    }
-    if (!formData.loanPurpose.trim()) {
-      newErrors.loanPurpose = "Loan purpose is required";
-      isValid = false;
-    }
-    if (!formData.employmentStatus.trim()) {
-      newErrors.employmentStatus = "Employment status is required";
-      isValid = false;
-    }
-    if (formData.monthlyIncome <= 0) {
-      newErrors.monthlyIncome = "Monthly income must be a positive number";
-      isValid = false;
-    }
-    if (!formData.leadSource.trim()) {
-      newErrors.leadSource = "Lead source is required";
-      isValid = false;
-    }
-
-    setErrors(newErrors);
-    return isValid;
-  };
-
-  const handleSave = async () => {
-    if (!validateForm()) return;
-
-    if (user && applicationId) {
-      const processedData = {
-        ...formData,
-        loanAmount: Number(formData.loanAmount),
-        monthlyIncome: Number(formData.monthlyIncome),
-        existingLoans: formData.existingLoans === true,
-      };
-
-      try {
-        const result = await saveApplicationForm(applicationId, processedData, user.id);
-        if (result) {
-          toast.success("Application saved successfully");
-          onSuccess();
-        } else {
-          toast.error("Failed to save application");
+      if (loanType === LoanType.GOLD_LOAN) {
+        setStep(2);
+        if (customerType === "NTC") {
+          setShowKYCForm(true);
         }
-      } catch (error) {
-        console.error("Error saving application:", error);
-        toast.error("An error occurred while saving the application.");
-      }
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!validateForm()) return;
-
-    if (user && applicationId) {
-      const processedData = {
-        ...formData,
-        loanAmount: Number(formData.loanAmount),
-        monthlyIncome: Number(formData.monthlyIncome),
-        existingLoans: formData.existingLoans === true,
-      };
-
-      try {
-        const result = await submitApplicationForm(applicationId, processedData, user.id);
-        if (result) {
-          toast.success("Application submitted successfully");
-          onSuccess();
-        } else {
-          toast.error("Failed to submit application");
-        }
-      } catch (error) {
-        console.error("Error submitting application:", error);
-        toast.error("An error occurred while submitting the application.");
+      } else {
+        toast.info("Currently, only Gold Loan applications are supported in the detailed form.");
       }
     }
   };
@@ -304,17 +140,6 @@ export default function ApplicationForm({
     setLeadId("");
     setExistingCustomer(null);
     setShowKYCForm(false);
-    setApplicationId("");
-    setFormData({
-      fullName: "",
-      loanAmount: 0,
-      loanPurpose: "",
-      employmentStatus: "",
-      monthlyIncome: 0,
-      existingLoans: false,
-      leadSource: "",
-    });
-    setErrors({});
   };
 
   const handleClose = () => {
@@ -335,7 +160,6 @@ export default function ApplicationForm({
             {step === 1 && "Select loan type, customer type, and enter lead ID"}
             {step === 2 && customerType === "ETC" && "Enter existing customer information"}
             {step === 2 && customerType === "NTC" && "Enter new customer information"}
-            {step === 3 && "Fill the loan application form"}
           </DialogDescription>
         </DialogHeader>
 
@@ -418,152 +242,12 @@ export default function ApplicationForm({
 
         {showKYCForm && customerType === "NTC" && (
           <KYCForm
-            onCancel={() => setStep(1)}
+            onCancel={() => {
+              setShowKYCForm(false);
+              setStep(1);
+            }}
             onCustomerCreated={handleCustomerCreated}
           />
-        )}
-
-        {step === 3 && (
-          <div className="grid gap-6 py-4">
-            <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="fullName">Full Name</Label>
-                <Input
-                  id="fullName"
-                  name="fullName"
-                  placeholder="Full name"
-                  value={formData.fullName}
-                  onChange={handleFormChange}
-                  disabled={existingCustomer !== null && !editApplication}
-                  className={errors.fullName ? "border-destructive" : ""}
-                />
-                {errors.fullName && <p className="text-xs text-destructive">{errors.fullName}</p>}
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="loanAmount">Loan Amount</Label>
-                <Input
-                  id="loanAmount"
-                  name="loanAmount"
-                  type="number"
-                  placeholder="Enter amount"
-                  value={formData.loanAmount.toString()}
-                  onChange={handleFormChange}
-                  className={errors.loanAmount ? "border-destructive" : ""}
-                />
-                {errors.loanAmount && <p className="text-xs text-destructive">{errors.loanAmount}</p>}
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="employmentStatus">Employment Status</Label>
-                <Select
-                  value={formData.employmentStatus}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, employmentStatus: value }))
-                  }
-                >
-                  <SelectTrigger id="employmentStatus">
-                    <SelectValue placeholder="Select employment status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="EMPLOYED">Employed</SelectItem>
-                    <SelectItem value="SELF_EMPLOYED">Self-Employed</SelectItem>
-                    <SelectItem value="BUSINESS_OWNER">Business Owner</SelectItem>
-                    <SelectItem value="UNEMPLOYED">Unemployed</SelectItem>
-                    <SelectItem value="RETIRED">Retired</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.employmentStatus && <p className="text-xs text-destructive">{errors.employmentStatus}</p>}
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="monthlyIncome">Monthly Income</Label>
-                <Input
-                  id="monthlyIncome"
-                  name="monthlyIncome"
-                  type="number"
-                  placeholder="Enter monthly income"
-                  value={formData.monthlyIncome.toString()}
-                  onChange={handleFormChange}
-                  className={errors.monthlyIncome ? "border-destructive" : ""}
-                />
-                {errors.monthlyIncome && <p className="text-xs text-destructive">{errors.monthlyIncome}</p>}
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="existingLoans">Existing Loans</Label>
-                <Select
-                  value={String(formData.existingLoans)}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, existingLoans: value === "true" }))
-                  }
-                >
-                  <SelectTrigger id="existingLoans">
-                    <SelectValue placeholder="Do you have existing loans?" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="true">Yes</SelectItem>
-                    <SelectItem value="false">No</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="leadSource">Lead Source</Label>
-                <Select
-                  value={formData.leadSource}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, leadSource: value }))
-                  }
-                >
-                  <SelectTrigger id="leadSource">
-                    <SelectValue placeholder="Select lead source" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="REFERRAL">Referral</SelectItem>
-                    <SelectItem value="DIRECT">Direct</SelectItem>
-                    <SelectItem value="MARKETING">Marketing</SelectItem>
-                    <SelectItem value="WEBSITE">Website</SelectItem>
-                    <SelectItem value="OTHER">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.leadSource && <p className="text-xs text-destructive">{errors.leadSource}</p>}
-              </div>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="loanPurpose">Loan Purpose</Label>
-              <Textarea
-                id="loanPurpose"
-                name="loanPurpose"
-                placeholder="Describe the purpose of the loan"
-                value={formData.loanPurpose}
-                onChange={handleFormChange}
-                rows={3}
-                className={errors.loanPurpose ? "border-destructive" : ""}
-              />
-              {errors.loanPurpose && <p className="text-xs text-destructive">{errors.loanPurpose}</p>}
-            </div>
-
-            <DialogFooter className="flex justify-between">
-              {!editApplication && (
-                <Button variant="outline" onClick={() => setStep(1)}>
-                  Back
-                </Button>
-              )}
-              {editApplication && (
-                <Button variant="outline" onClick={handleClose}>
-                  Cancel
-                </Button>
-              )}
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={handleSave}>
-                  Save Draft
-                </Button>
-                <Button onClick={handleSubmit}>Submit</Button>
-              </div>
-            </DialogFooter>
-          </div>
         )}
       </DialogContent>
     </Dialog>

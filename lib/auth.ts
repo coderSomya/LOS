@@ -5,16 +5,14 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import Cookies from "js-cookie";
 import { User } from "@/types";
 
-// Cookie storage adapter for Zustand
+// Zustand-compatible cookie storage
 const cookieStorage = {
-  getItem: (name: string): string | null => {
-    return Cookies.get(name) || null;
-  },
+  getItem: (name: string): string | null => Cookies.get(name) || null,
   setItem: (name: string, value: string): void => {
-    Cookies.set(name, value, { 
-      expires: 7, // 7 days
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production'
+    Cookies.set(name, value, {
+      expires: 7,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
     });
   },
   removeItem: (name: string): void => {
@@ -34,25 +32,22 @@ export const useAuth = create<AuthState>()(
     (set) => ({
       user: null,
       isAuthenticated: false,
-      login: async (username: string, password: string) => {
+      login: async (username, password) => {
         try {
-          const response = await fetch("/api/auth/login", {
+          const res = await fetch("/api/auth/login", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, password }),
           });
 
-          if (response.ok) {
-            const user = await response.json();
+          if (res.ok) {
+            const user = await res.json();
             set({ user, isAuthenticated: true });
             return true;
           }
-          
           return false;
-        } catch (error) {
-          console.error("Login error:", error);
+        } catch (e) {
+          console.error("Login error", e);
           return false;
         }
       },
@@ -63,6 +58,8 @@ export const useAuth = create<AuthState>()(
     {
       name: "auth-storage",
       storage: createJSONStorage(() => cookieStorage),
+      // Prevent Zustand from resetting state on Fast Refresh
+      partialize: (state) => ({ isAuthenticated: state.isAuthenticated, user: state.user }),
     }
   )
 );
